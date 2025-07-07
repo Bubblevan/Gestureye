@@ -96,5 +96,40 @@ COLORS = {
     'fps_text': (255, 255, 255)        # 白色 - FPS文本颜色
 }
 
+# 蓝牙配置
+BLUETOOTH_CONFIG = {
+    'enabled': False,                    # 是否启用蓝牙接收模式
+    'server_port': 1,                   # 蓝牙服务端口号 (RFCOMM channel)
+    'server_uuid': '94f39d29-7d6d-437d-973b-fba39e49d4ee',  # 服务UUID
+    'device_name': 'HandGestureReceiver',  # 设备名称
+    'max_packet_size': 1024,            # 最大数据包大小（字节）
+    'connection_timeout': 10.0,         # 连接超时时间（秒）
+    'heartbeat_interval': 5.0,          # 心跳间隔（秒）
+    'reconnect_attempts': 3,            # 重连尝试次数
+    'protocol_version': '1.0',          # 协议版本
+    'buffer_size': 4096,                # 接收缓冲区大小
+    'data_validation': True,            # 是否启用数据校验
+    'auto_gesture_detection': True      # 是否自动进行手势检测（从蓝牙数据）
+}
+
+# 蓝牙数据包类型定义
+BLUETOOTH_PACKET_TYPES = {
+    'HAND_LANDMARKS': 0x01,
+    'GESTURE_RESULT': 0x02,
+    'COMBINED_DATA': 0x03,
+    'HEARTBEAT': 0x04,
+    'CONFIG_REQUEST': 0x05,
+    'STATUS_REPORT': 0x06
+}
+
+# 蓝牙协议常量
+BLUETOOTH_PROTOCOL = {
+    'PACKET_HEADER': 0xAA55,            # 包头
+    'PACKET_FOOTER': 0x55AA,            # 包尾
+    'MAX_RETRIES': 3,                   # 最大重试次数
+    'TIMEOUT_MS': 1000,                 # 超时时间（毫秒）
+    'HEARTBEAT_TIMEOUT_MS': 5000        # 心跳超时时间（毫秒）
+}
+
 # 日志路径
 LOG_PATH = "logs/app.log"

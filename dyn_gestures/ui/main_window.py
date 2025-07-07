@@ -8,7 +8,7 @@ import numpy as np
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                              QLabel, QPushButton, QTextEdit, QTabWidget, 
                              QGroupBox, QSplitter, QFrame, QScrollArea,
-                             QGridLayout, QSpacerItem, QSizePolicy)
+                             QGridLayout, QSpacerItem, QSizePolicy, QMessageBox)
 from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, pyqtProperty
 from PyQt6.QtGui import QPixmap, QImage, QFont, QPalette, QColor, QLinearGradient, QPainter
 
@@ -16,6 +16,8 @@ from .widgets.binding_config import GestureBindingDialog
 from .threads.gesture_detection import GestureDetectionThread
 from core.gesture_bindings import GestureBindings
 from core.action_executor import ActionExecutor
+from bluetooth.manager import BluetoothManager
+import config
 
 
 class ModernCard(QFrame):
@@ -144,10 +146,17 @@ class MainWindow(QMainWindow):
         self.gesture_bindings = GestureBindings()
         self.action_executor = ActionExecutor()
         self.detection_thread = None
+        self.bluetooth_manager = None
         
         self.init_ui()
         self.setup_detection()
+        self.setup_bluetooth()
         self.apply_modern_style()
+        
+        # 设置定时器用于界面更新
+        self.update_timer = QTimer()
+        self.update_timer.timeout.connect(self.update_interface)
+        self.update_timer.start(100)  # 100ms更新一次
         
     def init_ui(self):
         """初始化现代化界面"""
@@ -436,6 +445,38 @@ class MainWindow(QMainWindow):
         self.detection_thread.frame_processed.connect(self.on_frame_processed)
         self.detection_thread.status_updated.connect(self.on_status_updated)
     
+    def setup_bluetooth(self):
+        """设置蓝牙管理器"""
+        if config.BLUETOOTH_CONFIG['enabled']:
+            try:
+                self.bluetooth_manager = BluetoothManager()
+                
+                # 连接蓝牙信号
+                self.bluetooth_manager.bluetooth_gesture_detected.connect(
+                    self.on_bluetooth_gesture_detected
+                )
+                self.bluetooth_manager.bluetooth_hand_data_received.connect(
+                    self.on_bluetooth_hand_data_received
+                )
+                self.bluetooth_manager.bluetooth_status_changed.connect(
+                    self.on_bluetooth_status_changed
+                )
+                self.bluetooth_manager.log_message.connect(
+                    self.on_bluetooth_log_message
+                )
+                
+                # 启动蓝牙服务器
+                if self.bluetooth_manager.start_bluetooth_server():
+                    self.add_log_message("🔵 蓝牙服务器启动成功")
+                else:
+                    self.add_log_message("❌ 蓝牙服务器启动失败")
+                    
+            except Exception as e:
+                self.add_log_message(f"❌ 蓝牙初始化失败: {e}")
+                self.bluetooth_manager = None
+        else:
+            self.add_log_message("蓝牙功能已禁用")
+    
     def start_detection(self):
         """开始检测"""
         if self.detection_thread and not self.detection_thread.running:
@@ -446,7 +487,7 @@ class MainWindow(QMainWindow):
             self.stop_btn.setEnabled(True)
             self.status_indicator.set_status("running")
             self.status_indicator.setText("运行中")
-            self.log_message("🚀 手势检测已启动")
+            self.add_log_message("🚀 手势检测已启动")
     
     def stop_detection(self):
         """停止检测"""
@@ -457,7 +498,11 @@ class MainWindow(QMainWindow):
             self.stop_btn.setEnabled(False)
             self.status_indicator.set_status("idle")
             self.status_indicator.setText("已停止")
-            self.log_message("⏹ 手势检测已停止")
+            self.add_log_message("⏹ 手势检测已停止")
+        
+        # 也停止蓝牙服务器
+        if self.bluetooth_manager:
+            self.bluetooth_manager.stop_bluetooth_server()
     
     def on_gesture_detected(self, gesture_name: str, hand_type: str, confidence: float):
         """手势检测回调"""
@@ -466,16 +511,16 @@ class MainWindow(QMainWindow):
         self.recent_gesture_label.setText(gesture_text)
         
         # 记录日志
-        self.log_message(f"🎯 检测到手势: {gesture_text}")
+        self.add_log_message(f"🎯 检测到手势: {gesture_text}")
         
         # 执行对应的动作
         binding = self.gesture_bindings.get_binding(gesture_name)
         if binding and binding.get("enabled", True):
             result = self.action_executor.execute_action(gesture_name, binding)
             if result is True:
-                self.log_message(f"✅ 执行动作: {binding.get('description', binding.get('action', ''))}")
+                self.add_log_message(f"✅ 执行动作: {binding.get('description', binding.get('action', ''))}")
             elif result is False:
-                self.log_message(f"❌ 执行动作失败: {binding.get('action', '')}")
+                self.add_log_message(f"❌ 执行动作失败: {binding.get('action', '')}")
             # 如果result是None（冷却时间内），则不打印任何日志
     
     def on_frame_processed(self, frame):
@@ -499,10 +544,41 @@ class MainWindow(QMainWindow):
     def on_status_updated(self, status: str):
         """状态更新回调"""
         self.status_indicator.setText(f"状态: {status}")
-        self.log_message(f"📊 {status}")
+        self.add_log_message(f"📊 {status}")
     
-    def log_message(self, message: str):
-        """记录日志消息"""
+    def on_bluetooth_gesture_detected(self, gesture_name: str, hand_type: str, confidence: float):
+        """蓝牙手势检测回调"""
+        # 更新最近检测的手势显示
+        gesture_text = f"{hand_type}手: {gesture_name} (蓝牙)\n置信度: {confidence:.1f}%"
+        self.recent_gesture_label.setText(gesture_text)
+        
+        # 记录日志
+        self.add_log_message(f"🔗 蓝牙手势: {gesture_text}")
+    
+    def on_bluetooth_hand_data_received(self, hand_data):
+        """蓝牙手部数据接收回调"""
+        # 这里可以添加手部数据的可视化或处理逻辑
+        self.add_log_message(f"📥 接收到手部数据: {hand_data.hand_type}手")
+    
+    def on_bluetooth_status_changed(self, connected: bool):
+        """蓝牙连接状态变化回调"""
+        status = "蓝牙已连接" if connected else "蓝牙已断开"
+        bluetooth_indicator_text = f" | {status}"
+        
+        # 更新状态指示器
+        current_text = self.status_indicator.text()
+        if " | 蓝牙" in current_text:
+            # 替换现有的蓝牙状态
+            current_text = current_text.split(" | 蓝牙")[0]
+        
+        self.status_indicator.setText(current_text + bluetooth_indicator_text)
+    
+    def on_bluetooth_log_message(self, message: str):
+        """蓝牙日志消息回调"""
+        self.add_log_message(message)
+    
+    def add_log_message(self, message: str):
+        """添加日志消息到界面"""
         from datetime import datetime
         timestamp = datetime.now().strftime("%H:%M:%S")
         log_entry = f"[{timestamp}] {message}"
@@ -516,10 +592,35 @@ class MainWindow(QMainWindow):
     def clear_log(self):
         """清空日志"""
         self.log_text.clear()
-        self.log_message("🗑 日志已清空")
+        self.add_log_message("🗑 日志已清空")
+    
+    def update_interface(self):
+        """定期更新界面"""
+        # 可以在这里添加周期性的界面更新逻辑
+        pass
     
     def closeEvent(self, event):
         """关闭事件"""
         if self.detection_thread and self.detection_thread.running:
             self.detection_thread.stop()
-        event.accept() 
+        event.accept()
+
+
+def main():
+    """主函数"""
+    app = QApplication(sys.argv)
+    
+    # 设置应用程序信息
+    app.setApplicationName("手势检测控制中心")
+    app.setApplicationVersion("1.0.0")
+    
+    # 创建主窗口
+    window = MainWindow()
+    window.show()
+    
+    # 运行应用程序
+    sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main() 

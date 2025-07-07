@@ -1,0 +1,62 @@
+{
+  "thumbs_up": {
+    "action_type": "system_function",
+    "action": "volume_up",
+    "description": "音量增加",
+    "enabled": true
+  },
+  "thumbs_down": {
+    "action_type": "system_function",
+    "action": "volume_down",
+    "description": "音量减少",
+    "enabled": true
+  },
+  "peace": {
+    "action_type": "system_function",
+    "action": "play_pause",
+    "description": "播放/暂停",
+    "enabled": true
+  },
+  "ok": {
+    "action_type": "system_function",
+    "action": "volume_mute",
+    "description": "静音",
+    "enabled": true
+  },
+  "pinch": {
+    "action_type": "system_function",
+    "action": "previous_track",
+    "description": "上一首",
+    "enabled": true
+  },
+  "wave": {
+    "action_type": "system_function",
+    "action": "next_track",
+    "description": "下一首",
+    "enabled": true
+  },
+  "swipe_left": {
+    "action_type": "keyboard_shortcut",
+    "action": "alt+left",
+    "description": "后退",
+    "enabled": true
+  },
+  "swipe_right": {
+    "action_type": "keyboard_shortcut",
+    "action": "alt+right",
+    "description": "前进",
+    "enabled": true
+  },
+  "swipe_up": {
+    "action_type": "keyboard_shortcut",
+    "action": "page_up",
+    "description": "向上滚动",
+    "enabled": true
+  },
+  "swipe_down": {
+    "action_type": "keyboard_shortcut",
+    "action": "page_down",
+    "description": "向下滚动",
+    "enabled": true
+  }
+}
