@@ -1,0 +1,833 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>450</width>
+    <height>700</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>400</width>
+    <height>600</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>手势检测控制中心</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QMainWindow {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #f8fafc, stop:1 #e2e8f0);
+}
+QLabel {
+    font-size: 13px;
+    font-weight: 500;
+}
+QPushButton {
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 6px;
+    min-height: 18px;
+    max-height: 35px;
+}
+QTabWidget::pane {
+    font-size: 12px;
+}
+QTabBar::tab {
+    font-size: 12px;
+    padding: 4px 10px;
+}</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="mainLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>8</number>
+    </property>
+    <property name="topMargin">
+     <number>8</number>
+    </property>
+    <property name="rightMargin">
+     <number>8</number>
+    </property>
+    <property name="bottomMargin">
+     <number>8</number>
+    </property>
+    <item>
+     <widget class="QFrame" name="controlPanel">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>380</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>450</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QFrame {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px;
+}</string>
+      </property>
+      <layout class="QVBoxLayout" name="controlLayout">
+       <property name="spacing">
+        <number>10</number>
+       </property>
+       <item>
+                 <widget class="QLabel" name="titleLabel">
+          <property name="text">
+           <string>手势检测控制中心</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         <property name="styleSheet">
+          <string notr="true">QLabel {
+    font-size: 28px;
+    font-weight: bold;
+    color: #1f2937;
+    padding: 6px;
+    background: transparent;
+    border: none;
+}</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="buttonFrame">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <layout class="QVBoxLayout" name="buttonLayout">
+          <property name="spacing">
+           <number>8</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="startBtn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>35</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>35</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>开始检测</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #2563eb, stop:1 #1d4ed8);
+    border: none;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 6px;
+    min-height: 18px;
+    max-height: 35px;
+}
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #3b82f6, stop:1 #2563eb);
+}
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #1d4ed8, stop:1 #1e40af);
+}</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="stopBtn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>35</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>35</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>停止检测</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #dc2626, stop:1 #b91c1c);
+    border: none;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 6px;
+    min-height: 18px;
+    max-height: 35px;
+}
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #ef4444, stop:1 #dc2626);
+}
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #b91c1c, stop:1 #991b1b);
+}
+QPushButton:disabled {
+    background: #9ca3af;
+    color: #6b7280;
+}</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="Line" name="separator">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="debugModeBtn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>35</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>35</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>开发者模式</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="toolTip">
+             <string>切换开发者调试模式，显示/隐藏摄像头预览</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #6b7280, stop:1 #4b5563);
+    border: none;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 6px;
+    min-height: 18px;
+    max-height: 35px;
+}
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #9ca3af, stop:1 #6b7280);
+}
+QPushButton:checked {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #d97706, stop:1 #b45309);
+}
+QPushButton:checked:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #f59e0b, stop:1 #d97706);
+}</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="statusDisplayFrame">
+         <property name="frameShape">
+          <enum>QFrame::Box</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QFrame {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #f3f4f6, stop:1 #e5e7eb);
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 10px;
+}</string>
+         </property>
+         <layout class="QVBoxLayout" name="statusDisplayLayout">
+          <property name="spacing">
+           <number>6</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="statusLabel">
+            <property name="text">
+             <string>状态: 未启动</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QLabel {
+    font-size: 14px;
+    font-weight: bold;
+    color: #374151;
+    padding: 4px;
+    background: transparent;
+    border: none;
+}</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="gestureLabel">
+            <property name="text">
+             <string>最近手势: 无</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2937;
+    padding: 3px;
+    background: transparent;
+    border: none;
+}</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTabWidget" name="tabWidget">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="gestureTab">
+          <attribute name="title">
+           <string>手势绑定</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="gestureLayout">
+           <item>
+            <widget class="QScrollArea" name="gestureScrollArea">
+             <property name="widgetResizable">
+              <bool>true</bool>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QScrollArea {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+}
+QScrollBar:vertical {
+    border: none;
+    background: #f1f5f9;
+    width: 8px;
+    border-radius: 4px;
+}
+QScrollBar::handle:vertical {
+    background: #cbd5e1;
+    min-height: 20px;
+    border-radius: 4px;
+}
+QScrollBar::handle:vertical:hover {
+    background: #94a3b8;
+}
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    border: none;
+    background: none;
+}</string>
+             </property>
+             <widget class="QWidget" name="gestureScrollWidget">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>289</width>
+                <height>400</height>
+               </rect>
+              </property>
+              <layout class="QVBoxLayout" name="gestureScrollLayout">
+               <item>
+                <widget class="QLabel" name="gestureHelpLabel">
+                 <property name="text">
+                  <string>支持的手势：
+
+• 拇指向上 - 音量增加
+  将拇指向上竖起，保持1秒
+  
+• 拇指向下 - 音量减小
+  将拇指向下，保持1秒
+  
+• V字手势 - 播放/暂停
+  食指和中指伸出做V字手势
+  
+• OK手势 - 静音
+  拇指和食指做圆圈手势
+  
+• 捏合手势 - 上一首
+  拇指和食指做捏的动作
+  
+• 挥手手势 - 下一首
+  张开手掌左右摆动
+
+动态手势：
+• 向左滑动 - 回退操作
+• 向右滑动 - 前进操作
+• 向上滑动 - 向上滚动
+• 向下滑动 - 向下滚动
+
+使用技巧：
+• 确保手势在摄像头范围内
+• 保持手势1-2秒以确保识别
+• 良好的光线条件有助于识别
+• 避免快速移动以免误识别
+
+调试模式：
+• 启用后可查看实时摄像头画面
+• 查看手势识别的详细信息
+• 调整手势动作以获得最佳效果
+
+注意事项：
+• 首次使用请允许摄像头权限
+• 建议在稳定的环境中使用
+• 如遇识别问题可重启检测
+
+启动检测后即可使用所有手势功能</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignTop</set>
+                 </property>
+                 <property name="wordWrap">
+                  <bool>true</bool>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">QLabel {
+    font-size: 11px;
+    line-height: 1.4;
+    color: #4b5563;
+    padding: 8px;
+    background: transparent;
+    border: none;
+}</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="verticalSpacer">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </widget>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="settingsTab">
+          <attribute name="title">
+           <string>设置</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="settingsLayout">
+           <item>
+            <widget class="QLabel" name="settingsHelpLabel">
+             <property name="text">
+              <string>系统设置
+
+开发者模式：
+• 显示摄像头实时预览
+• 查看详细检测信息
+• 调试手势识别算法
+
+快捷键：
+• F12 - 切换开发者模式
+• Ctrl+S - 开始检测
+• Ctrl+T - 停止检测
+
+日志保存位置：
+./logs/gesture_detection.log</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignTop</set>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QLabel {
+    font-size: 11px;
+    line-height: 1.3;
+    color: #4b5563;
+    padding: 6px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+}</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="logTextEdit">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>100</height>
+          </size>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QTextEdit {
+    font-size: 11px;
+    background: #1f2937;
+    color: #f9fafb;
+    border: 1px solid #374151;
+    border-radius: 4px;
+    padding: 6px;
+    font-family: 'Consolas', 'Monaco', monospace;
+}</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QFrame" name="contentPanel">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>1</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
+      </property>
+      <layout class="QVBoxLayout" name="contentLayout">
+       <property name="spacing">
+        <number>10</number>
+       </property>
+       <property name="leftMargin">
+        <number>10</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QFrame" name="welcomePanel">
+         <property name="frameShape">
+          <enum>QFrame::Box</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QFrame {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+}</string>
+         </property>
+         <layout class="QVBoxLayout" name="welcomeLayout">
+          <item>
+           <widget class="QLabel" name="welcomeTitle">
+            <property name="text">
+             <string>欢迎使用手势检测控制中心</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QLabel {
+    font-size: 24px;
+    font-weight: bold;
+    color: #1f2937;
+    padding: 15px;
+    background: transparent;
+    border: none;
+}</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="welcomeSubtitle">
+            <property name="text">
+             <string>通过手势控制您的计算机</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QLabel {
+    font-size: 16px;
+    color: #6b7280;
+    padding: 8px;
+    background: transparent;
+    border: none;
+}</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="instructionLabel">
+            <property name="text">
+             <string>点击左侧"开始检测"按钮开始使用
+
+确保您的摄像头正常工作
+在良好的光线条件下效果更佳
+开发者可启用调试模式查看详细信息</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QLabel {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #4b5563;
+    padding: 15px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #f0f9ff, stop:1 #e0f2fe);
+    border: 1px solid #bae6fd;
+    border-radius: 8px;
+}</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="debugPanel">
+         <property name="visible">
+          <bool>false</bool>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::Box</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QFrame {
+    background: white;
+    border: 2px solid #fbbf24;
+    border-radius: 12px;
+    padding: 15px;
+}</string>
+         </property>
+         <layout class="QVBoxLayout" name="debugPanelLayout">
+          <item>
+           <widget class="QLabel" name="debugTitleLabel">
+            <property name="text">
+             <string>开发者调试面板</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QLabel {
+    font-size: 18px;
+    font-weight: bold;
+    color: #f59e0b;
+    padding: 8px;
+    background: #fefce8;
+    border: 1px solid #fde68a;
+    border-radius: 6px;
+}</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="cameraLabel">
+            <property name="minimumSize">
+             <size>
+              <width>400</width>
+              <height>300</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>摄像头预览
+启动检测后将显示实时画面</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QLabel {
+    font-size: 14px;
+    color: #6b7280;
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    background: #f9fafb;
+    padding: 15px;
+}</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>450</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuDebug">
+    <property name="title">
+     <string>调试</string>
+    </property>
+    <addaction name="actionToggleDebugMode"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>视图</string>
+    </property>
+    <addaction name="actionToggleExpandedView"/>
+   </widget>
+   <widget class="QMenu" name="menuConfig">
+    <property name="title">
+     <string>配置</string>
+    </property>
+    <addaction name="actionCustomGestureBindings"/>
+    <addaction name="actionResetBindings"/>
+   </widget>
+   <addaction name="menuDebug"/>
+   <addaction name="menuView"/>
+   <addaction name="menuConfig"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionToggleDebugMode">
+   <property name="text">
+    <string>切换开发者模式</string>
+   </property>
+   <property name="toolTip">
+    <string>切换开发者调试模式</string>
+   </property>
+   <property name="shortcut">
+    <string>F12</string>
+   </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionToggleExpandedView">
+   <property name="text">
+    <string>展开/紧凑视图</string>
+   </property>
+   <property name="toolTip">
+    <string>切换展开或紧凑视图模式</string>
+   </property>
+   <property name="shortcut">
+    <string>F11</string>
+   </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionCustomGestureBindings">
+   <property name="text">
+    <string>自定义手势绑定</string>
+   </property>
+   <property name="toolTip">
+    <string>打开手势绑定配置界面，自定义手势与操作的关联</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
+   </property>
+  </action>
+  <action name="actionResetBindings">
+   <property name="text">
+    <string>重置手势绑定</string>
+   </property>
+   <property name="toolTip">
+    <string>将所有手势绑定重置为默认设置</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui> 
