@@ -116,7 +116,7 @@ class MainWindowUI(QMainWindow):
         self.gestureLabel.setText("最近手势: 无")
         
         # 设置窗口属性
-        self.setWindowTitle("手势检测控制中心")
+        self.setWindowTitle("Gestureyes")
         self.setMinimumSize(400, 600)
         
         # 强制初始状态：紧凑模式
@@ -543,7 +543,7 @@ class MainWindowUI(QMainWindow):
         self.settings.setValue('expanded_view', self.expanded_view)
         self.settings.setValue('auto_layout', self.auto_layout)
         
-        self.log_message("感谢使用手势检测控制中心！")
+        self.log_message("感谢使用Gestureyes手视！")
         event.accept()
 
 

@@ -17,7 +17,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>手势检测控制中心</string>
+   <string>Gestureyes手视</string>
   </property>
   <property name="styleSheet">
    <string notr="true">QMainWindow {
@@ -99,7 +99,7 @@ QTabBar::tab {
        <item>
                  <widget class="QLabel" name="titleLabel">
           <property name="text">
-           <string>手势检测控制中心</string>
+           <string>手视 Gestureyes</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -603,7 +603,7 @@ QScrollBar::sub-line:vertical {
           <item>
            <widget class="QLabel" name="welcomeTitle">
             <property name="text">
-             <string>欢迎使用手势检测控制中心</string>
+             <string>欢迎使用Gestureyes手视</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
