@@ -212,7 +212,7 @@ class MainWindow(QMainWindow):
         server_info_layout = QHBoxLayout()
         server_info_layout.addWidget(QLabel("服务器地址:"))
         
-        self.server_address_label = QLabel("192.168.31.247:65432")
+        self.server_address_label = QLabel(f"{config.SOCKET_SERVER_HOST}:{config.SOCKET_SERVER_PORT}")
         self.server_address_label.setStyleSheet("""
             QLabel {
                 color: #059669;

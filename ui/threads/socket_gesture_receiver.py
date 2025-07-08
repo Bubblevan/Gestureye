@@ -18,8 +18,8 @@ class SocketGestureReceiverThread(QThread):
     client_disconnected = pyqtSignal(str)  # client address
     status_updated = pyqtSignal(str)  # status message
     error_occurred = pyqtSignal(str)  # error message
-    
-    def __init__(self, host='192.168.31.247', port=65432):
+
+    def __init__(self, host=config.SOCKET_SERVER_HOST, port=config.SOCKET_SERVER_PORT):
         super().__init__()
         self.host = host
         self.port = port
