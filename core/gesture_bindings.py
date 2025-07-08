@@ -3,21 +3,22 @@
 """
 
 from enum import Enum
-from typing import Dict, Any, Callable
+from typing import Dict, Any, Callable, Optional
 import json
 import os
 
 class GestureType(Enum):
     """手势类型枚举"""
-    PEACE_SIGN = "PeaceSign"
+    FINGER_COUNT_ONE = "FingerCountOne"
+    FINGER_COUNT_TWO = "FingerCountTwo"
+    FINGER_COUNT_THREE = "FingerCountThree"
+    HAND_OPEN = "HandOpen"
+    TWO_FINGER_SWIPE = "TwoFingerSwipe"
+    HAND_CLOSE = "HandClose"
+    HAND_SWIPE = "HandSwipe"
+    HAND_FLIP = "HandFlip"
     THUMBS_UP = "ThumbsUp"
     THUMBS_DOWN = "ThumbsDown"
-    HAND_OPEN = "HandOpen"
-    OK_SIGN = "OKSign"
-    SWIPE_LEFT = "SwipeLeft"
-    SWIPE_RIGHT = "SwipeRight"
-    SWIPE_UP = "SwipeUp"
-    SWIPE_DOWN = "SwipeDown"
 
 class ActionType(Enum):
     """动作类型枚举"""
@@ -33,67 +34,56 @@ class GestureBindings:
         self.bindings = self.load_bindings()
         
     def load_bindings(self) -> Dict[str, Dict[str, Any]]:
-        """加载手势绑定配置"""
+        """加载手势绑定配置"""        
         default_bindings = {
-            "thumbs_up": {
+            "HandOpen": {
                 "action_type": ActionType.SYSTEM_FUNCTION.value,
-                "action": "volume_up",
-                "description": "音量增加",
-                "enabled": True
+                "action": "window_maximize",
+                "description": "将最上方的窗口全屏",
+                "enabled": True,
+                "gesture_type": "static"
             },
-            "thumbs_down": {
+            "TwoFingerSwipe": {
                 "action_type": ActionType.SYSTEM_FUNCTION.value,
-                "action": "volume_down",
-                "description": "音量减少",
-                "enabled": True
+                "action": "window_minimize",
+                "description": "将最上方窗口最小化",
+                "enabled": True,
+                "gesture_type": "dynamic"
             },
-            "peace": {
+            "HandClose": {
                 "action_type": ActionType.SYSTEM_FUNCTION.value,
-                "action": "play_pause",
-                "description": "播放/暂停",
-                "enabled": True
+                "action": "window_drag",
+                "description": "抓住窗口移动",
+                "enabled": True,
+                "gesture_type": "dynamic"
             },
-            "ok": {
+            "HandSwipe": {
                 "action_type": ActionType.SYSTEM_FUNCTION.value,
-                "action": "volume_mute",
-                "description": "静音",
-                "enabled": True
+                "action": "window_switch",
+                "description": "切换窗口",
+                "enabled": True,
+                "gesture_type": "dynamic"
             },
-            "pinch": {
+            "HandFlip": {
                 "action_type": ActionType.SYSTEM_FUNCTION.value,
-                "action": "previous_track",
-                "description": "上一首",
-                "enabled": True
+                "action": "window_close",
+                "description": "关闭最上方窗口",
+                "enabled": True,
+                "gesture_type": "dynamic"
             },
-            "wave": {
+            "ThumbsUp": {
                 "action_type": ActionType.SYSTEM_FUNCTION.value,
-                "action": "next_track",
-                "description": "下一首",
-                "enabled": True
+                "action": "window_scroll_up",
+                "description": "将最上方的窗口向上滚动",
+                "enabled": True,
+                "gesture_type": "static"
             },
-            "swipe_left": {
-                "action_type": ActionType.KEYBOARD_SHORTCUT.value,
-                "action": "alt+left",
-                "description": "后退",
-                "enabled": True
-            },
-            "swipe_right": {
-                "action_type": ActionType.KEYBOARD_SHORTCUT.value,
-                "action": "alt+right",
-                "description": "前进",
-                "enabled": True
-            },
-            "swipe_up": {
-                "action_type": ActionType.KEYBOARD_SHORTCUT.value,
-                "action": "page_up",
-                "description": "向上滚动",
-                "enabled": True
-            },
-            "swipe_down": {
-                "action_type": ActionType.KEYBOARD_SHORTCUT.value,
-                "action": "page_down",
-                "description": "向下滚动",
-                "enabled": True
+            "ThumbsDown": {
+                "action_type": ActionType.SYSTEM_FUNCTION.value,
+                "action": "window_scroll_down",
+                "description": "将最上方的窗口向下滚动",
+                "enabled": True,
+                "gesture_type": "static"
             }
         }
         
@@ -114,7 +104,7 @@ class GestureBindings:
             self.save_bindings(default_bindings)
             return default_bindings
     
-    def save_bindings(self, bindings: Dict[str, Dict[str, Any]] = None):
+    def save_bindings(self, bindings: Optional[Dict[str, Dict[str, Any]]] = None):
         """保存手势绑定配置"""
         if bindings is None:
             bindings = self.bindings
@@ -162,4 +152,24 @@ class GestureBindings:
     def update_bindings(self, bindings: Dict[str, Dict[str, Any]]):
         """更新手势绑定配置"""
         self.bindings.update(bindings)
-        self.save_bindings() 
+        self.save_bindings()
+
+    def get_gesture_type(self, gesture: str) -> str:
+        """获取手势类型 (static/dynamic)"""
+        binding = self.get_binding(gesture)
+        return binding.get("gesture_type", "static")
+    
+    def get_static_gestures(self) -> Dict[str, Dict[str, Any]]:
+        """获取所有静态手势绑定"""
+        return {k: v for k, v in self.bindings.items() 
+                if v.get("gesture_type", "static") == "static"}
+    
+    def get_dynamic_gestures(self) -> Dict[str, Dict[str, Any]]:
+        """获取所有动态手势绑定"""
+        return {k: v for k, v in self.bindings.items() 
+                if v.get("gesture_type", "static") == "dynamic"}
+    
+    def is_gesture_enabled(self, gesture: str) -> bool:
+        """检查手势是否启用"""
+        binding = self.get_binding(gesture)
+        return binding.get("enabled", False) if binding else False

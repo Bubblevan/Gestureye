@@ -141,11 +141,19 @@ class ActionExecutor:
             elif function == "volume_mute":
                 return self._volume_mute()
             elif function == "play_pause":
-                return self._play_pause()
+                return self._play_pause()            
             elif function == "next_track":
                 return self._next_track()
             elif function == "prev_track":
                 return self._prev_track()
+            elif function == "window_drag":
+                return self._window_drag()
+            elif function == "window_switch":
+                return self._window_switch()
+            elif function == "window_scroll_up":
+                return self._window_scroll_up()
+            elif function == "window_scroll_down":
+                return self._window_scroll_down()
             else:
                 print(f"未知的系统功能: {function}")
                 return False
@@ -261,7 +269,52 @@ class ActionExecutor:
         except Exception as e:
             print(f"上一曲失败: {e}")
             return False
-    
+
     def set_execution_cooldown(self, cooldown: float):
         """设置执行冷却时间"""
-        self.execution_cooldown = cooldown 
+        self.execution_cooldown = cooldown
+
+    def _window_drag(self) -> bool:
+        """窗口拖拽模拟"""
+        # TODO: 实现真正的窗口拖拽逻辑
+        # 目前的实现与 window_switch 重复，暂时留空
+        print("窗口拖拽功能尚未实现")
+        pass
+        return False
+
+    def _window_switch(self) -> bool:
+        """窗口切换"""
+        try:
+            # Alt+Tab窗口切换
+            with self.keyboard_controller.pressed(Key.alt):
+                self.keyboard_controller.press(Key.tab)
+                time.sleep(0.1)
+                self.keyboard_controller.release(Key.tab)
+            return True
+        except Exception as e:
+            print(f"窗口切换失败: {e}")
+            return False
+    
+    def _window_scroll_up(self) -> bool:
+        """向上滚动"""
+        try:
+            # 模拟鼠标滚轮向上
+            for _ in range(3):  # 多次滚动增强效果
+                win32api.mouse_event(win32con.MOUSEEVENTF_WHEEL, 0, 0, 120, 0)
+                time.sleep(0.05)
+            return True
+        except Exception as e:
+            print(f"向上滚动失败: {e}")
+            return False
+    
+    def _window_scroll_down(self) -> bool:
+        """向下滚动"""
+        try:
+            # 模拟鼠标滚轮向下
+            for _ in range(3):  # 多次滚动增强效果
+                win32api.mouse_event(win32con.MOUSEEVENTF_WHEEL, 0, 0, -120, 0)
+                time.sleep(0.05)
+            return True
+        except Exception as e:
+            print(f"向下滚动失败: {e}")
+            return False

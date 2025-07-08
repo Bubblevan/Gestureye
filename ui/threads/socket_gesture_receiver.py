@@ -13,6 +13,7 @@ import config
 class SocketGestureReceiverThread(QThread):
     """Socket 手势接收线程"""
     gesture_detected = pyqtSignal(str, str, float)  # gesture_name, hand_type, confidence
+    gesture_detail_detected = pyqtSignal(dict)  # 完整的手势数据字典
     client_connected = pyqtSignal(str)  # client address
     client_disconnected = pyqtSignal(str)  # client address
     status_updated = pyqtSignal(str)  # status message
@@ -114,6 +115,44 @@ class SocketGestureReceiverThread(QThread):
                 gesture_name = data.get('gesture', 'unknown')
                 hand_type = data.get('hand_type', 'unknown')
                 confidence = data.get('confidence', 0.0)
+                gesture_type = data.get('gesture_type', 'static')  # 默认为静态手势
+                details = data.get('details', {})
+                timestamp = data.get('timestamp', 0)
+                
+                # 发送完整的手势数据
+                self.gesture_detail_detected.emit(data)
+                
+                # 根据手势类型进行不同的处理
+                if gesture_type == 'static':
+                    # 静态手势处理
+                    tag = details.get('tag', 'start')
+                    if tag == 'start':
+                        # 静态手势开始，发送手势检测信号
+                        self.gesture_detected.emit(gesture_name, hand_type, confidence)
+                        self.status_updated.emit(f"收到来自 {client_addr} 的静态手势: {gesture_name} (开始, 置信度: {confidence:.1f}%)")
+                    elif tag == 'end':
+                        # 静态手势结束，可以在这里处理手势结束逻辑
+                        self.status_updated.emit(f"收到来自 {client_addr} 的静态手势: {gesture_name} (结束)")
+                        
+                elif gesture_type == 'dynamic':
+                    # 动态手势处理
+                    if 'tag' in details:
+                        # 带轨迹追踪的动态手势
+                        tag = details.get('tag', 'end')
+                        dx = details.get('dx', 0)
+                        dy = details.get('dy', 0)
+                        
+                        if tag == 'start':
+                            self.status_updated.emit(f"收到来自 {client_addr} 的动态手势: {gesture_name} (开始)")
+                        elif tag == 'end':
+                            # 动态手势结束，发送手势检测信号
+                            self.gesture_detected.emit(gesture_name, hand_type, confidence)
+                            self.status_updated.emit(f"收到来自 {client_addr} 的动态手势: {gesture_name} (结束, dx:{dx}, dy:{dy}, 置信度: {confidence:.1f}%)")
+                    else:
+                        # 无轨迹追踪的动态手势，直接发送
+                        self.gesture_detected.emit(gesture_name, hand_type, confidence)
+                        self.status_updated.emit(f"收到来自 {client_addr} 的动态手势: {gesture_name} (置信度: {confidence:.1f}%)")
+                        
             except json.JSONDecodeError:
                 # 如果不是 JSON 格式，尝试解析简单的文本格式
                 # 格式: "gesture_name,hand_type,confidence"
@@ -126,10 +165,10 @@ class SocketGestureReceiverThread(QThread):
                     gesture_name = data_str.strip()
                     hand_type = 'unknown'
                     confidence = 0.0
-            
-            # 发送手势检测信号
-            self.gesture_detected.emit(gesture_name, hand_type, confidence)
-            self.status_updated.emit(f"收到来自 {client_addr} 的手势: {gesture_name}")
+                
+                # 对于文本格式，直接发送手势检测信号
+                self.gesture_detected.emit(gesture_name, hand_type, confidence)
+                self.status_updated.emit(f"收到来自 {client_addr} 的手势: {gesture_name}")
             
         except Exception as e:
             self.error_occurred.emit(f"解析手势数据失败: {e}")

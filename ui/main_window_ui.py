@@ -80,10 +80,10 @@ class MainWindowUI(QMainWindow):
         # 同步按钮和菜单项状态
         self.debugModeBtn.toggled.connect(self.actionToggleDebugMode.setChecked)
         self.actionToggleDebugMode.toggled.connect(self.debugModeBtn.setChecked)
-        
-        # 设置Socket手势接收线程
+          # 设置Socket手势接收线程
         self.detection_thread = SocketGestureReceiverThread()
         self.detection_thread.gesture_detected.connect(self.on_gesture_detected)
+        self.detection_thread.gesture_detail_detected.connect(self.on_gesture_detail_detected)
         self.detection_thread.status_updated.connect(self.on_status_updated)
         self.detection_thread.error_occurred.connect(self.on_error_occurred)
     
@@ -522,10 +522,72 @@ class MainWindowUI(QMainWindow):
         
         self.log_message("感谢使用手势检测控制中心！")
         event.accept()
+    
+    def on_gesture_detail_detected(self, gesture_data: dict):
+        """处理详细的手势数据"""
+        try:
+            gesture_name = gesture_data.get('gesture', 'unknown')
+            hand_type = gesture_data.get('hand_type', 'unknown')
+            confidence = gesture_data.get('confidence', 0.0)
+            gesture_type = gesture_data.get('gesture_type', 'static')
+            details = gesture_data.get('details', {})
+            timestamp = gesture_data.get('timestamp', 0)
+            
+            # 记录详细的手势信息到日志
+            if self.debug_mode:
+                log_msg = f"详细手势数据 - 类型: {gesture_type}, 手势: {gesture_name}, 手部: {hand_type}, 置信度: {confidence:.1f}%"
+                
+                if gesture_type == 'static':
+                    tag = details.get('tag', '')
+                    if tag:
+                        log_msg += f", 标签: {tag}"
+                        
+                elif gesture_type == 'dynamic':
+                    if 'tag' in details:
+                        tag = details.get('tag', '')
+                        dx = details.get('dx', 0)
+                        dy = details.get('dy', 0)
+                        log_msg += f", 标签: {tag}, 位移: dx={dx}, dy={dy}"
+                    else:
+                        log_msg += ", 无轨迹追踪"
+                
+                self.log_message(log_msg)
+            
+            # 将详细的手势数据传递给动作执行器
+            if gesture_type == 'static' and details.get('tag') == 'start':
+                # 静态手势开始时执行动作
+                self._execute_gesture_action(gesture_name, hand_type, confidence)
+            elif gesture_type == 'dynamic':
+                if 'tag' not in details or details.get('tag') == 'end':
+                    # 动态手势完成时执行动作
+                    self._execute_gesture_action(gesture_name, hand_type, confidence)
+                    
+        except Exception as e:
+            self.log_message(f"处理详细手势数据失败: {e}")
+    
+    def _execute_gesture_action(self, gesture_name: str, hand_type: str, confidence: float):
+        """执行手势对应的动作"""
+        try:
+            # 获取手势绑定配置
+            binding = self.gesture_bindings.get_binding(gesture_name)
+            
+            if binding and binding.get('enabled', True):
+                # 执行动作
+                result = self.action_executor.execute_action(gesture_name, binding)
+                
+                if result is True:
+                    self.log_message(f"成功执行手势动作: {gesture_name} -> {binding.get('description', binding.get('action', ''))}")
+                elif result is False:
+                    self.log_message(f"执行手势动作失败: {gesture_name}")
+                elif result is None:
+                    # 在冷却时间内，跳过执行
+                    if self.debug_mode:
+                        self.log_message(f"手势动作在冷却时间内，跳过执行: {gesture_name}")
+            else:
+                if self.debug_mode:
+                    self.log_message(f"手势未绑定或已禁用: {gesture_name}")
+                    
+        except Exception as e:
+            self.log_message(f"执行手势动作时出错: {e}")
 
-
-if __name__ == '__main__':
-    app = QApplication([])
-    window = MainWindowUI()
-    window.show()
-    app.exec()
+    # ...existing code...

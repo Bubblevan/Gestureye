@@ -3,60 +3,84 @@
     "action_type": "system_function",
     "action": "volume_up",
     "description": "音量增加",
-    "enabled": true
+    "enabled": true,
+    "gesture_type": "static"
   },
   "thumbs_down": {
     "action_type": "system_function",
     "action": "volume_down",
     "description": "音量减少",
-    "enabled": true
+    "enabled": true,
+    "gesture_type": "static"
   },
   "peace": {
     "action_type": "system_function",
     "action": "play_pause",
     "description": "播放/暂停",
-    "enabled": true
+    "enabled": true,
+    "gesture_type": "static"
   },
   "ok": {
     "action_type": "system_function",
     "action": "volume_mute",
     "description": "静音",
-    "enabled": true
+    "enabled": true,
+    "gesture_type": "static"
   },
   "pinch": {
     "action_type": "system_function",
-    "action": "previous_track",
+    "action": "prev_track",
     "description": "上一首",
-    "enabled": true
+    "enabled": true,
+    "gesture_type": "dynamic"
   },
   "wave": {
     "action_type": "system_function",
     "action": "next_track",
     "description": "下一首",
-    "enabled": true
+    "enabled": true,
+    "gesture_type": "dynamic"
+  },
+  "hand_open": {
+    "action_type": "system_function",
+    "action": "window_maximize",
+    "description": "最大化窗口",
+    "enabled": true,
+    "gesture_type": "dynamic"
+  },
+  "hand_close": {
+    "action_type": "system_function",
+    "action": "window_minimize",
+    "description": "最小化窗口",
+    "enabled": true,
+    "gesture_type": "dynamic"
   },
   "swipe_left": {
     "action_type": "keyboard_shortcut",
     "action": "alt+left",
     "description": "后退",
-    "enabled": true
+    "enabled": true,
+    "gesture_type": "dynamic"
   },
   "swipe_right": {
     "action_type": "keyboard_shortcut",
     "action": "alt+right",
     "description": "前进",
-    "enabled": true
+    "enabled": true,
+    "gesture_type": "dynamic"
   },
   "swipe_up": {
     "action_type": "keyboard_shortcut",
     "action": "page_up",
     "description": "向上滚动",
-    "enabled": true
+    "enabled": true,
+    "gesture_type": "dynamic"
   },
   "swipe_down": {
     "action_type": "keyboard_shortcut",
     "action": "page_down",
     "description": "向下滚动",
-    "enabled": true
+    "enabled": true,
+    "gesture_type": "dynamic"
   }
 }
