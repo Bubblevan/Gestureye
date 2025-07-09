@@ -4,7 +4,7 @@
 
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                              QScrollArea, QFrame, QPushButton, QListWidget, 
-                             QListWidgetItem, QGroupBox, QTextEdit)
+                             QListWidgetItem, QGroupBox, QTextEdit, QSizePolicy)
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QFont, QPalette
 import json
@@ -23,8 +23,11 @@ class GestureHistoryItem(QFrame):
     def setup_ui(self):
         """设置UI"""
         self.setFrameShape(QFrame.Shape.Box)
-        self.setMinimumHeight(100)  # 确保每个项目有足够的高度
-        self.setMaximumHeight(140)  # 限制最大高度，保持紧凑
+        # 防止水平溢出，限制最小宽度
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding,   # 水平扩展，但不超出容器
+            QSizePolicy.Policy.Minimum      # 允许垂直扩展
+        )
         self.setStyleSheet("""
             QFrame {
                 background: white;
@@ -54,25 +57,17 @@ class GestureHistoryItem(QFrame):
         # 时间显示
         time_str = datetime.fromtimestamp(timestamp).strftime('%H:%M:%S')
         
-        # 主要信息行
-        main_layout = QHBoxLayout()
-        
-        # 手势名称（截断过长的名称）
-        display_name = gesture_name[:12] + "..." if len(gesture_name) > 12 else gesture_name
-        gesture_label = QLabel(f"🤚 {display_name}")
+        # 第一行：手势名称（完整显示，支持换行）
+        gesture_label = QLabel(f"🤚 {gesture_name}")
         gesture_label.setStyleSheet("font-weight: bold; color: #1f2937; font-size: 12px;")
-        main_layout.addWidget(gesture_label)
+        gesture_label.setWordWrap(True)  # 允许文本换行
+        gesture_label.setSizePolicy(
+            QSizePolicy.Policy.Expanding,  # 水平扩展
+            QSizePolicy.Policy.Minimum     # 垂直最小
+        )
+        layout.addWidget(gesture_label)
         
-        main_layout.addStretch()
-        
-        # 时间
-        time_label = QLabel(time_str)
-        time_label.setStyleSheet("color: #6b7280; font-size: 10px;")
-        main_layout.addWidget(time_label)
-        
-        layout.addLayout(main_layout)
-        
-        # 详细信息行（紧凑显示）
+        # 第二行：详细信息（水平紧凑布局）
         detail_layout = QHBoxLayout()
         
         # 手部类型（简化显示）
@@ -88,6 +83,11 @@ class GestureHistoryItem(QFrame):
         type_label = QLabel(f"{type_icon}{type_short}")
         type_label.setStyleSheet("color: #4b5563; font-size: 10px;")
         detail_layout.addWidget(type_label)
+        
+        # 时间显示
+        time_label = QLabel(time_str)
+        time_label.setStyleSheet("color: #6b7280; font-size: 10px;")
+        detail_layout.addWidget(time_label)
         
         detail_layout.addStretch()
         
@@ -120,6 +120,13 @@ class GestureStatsWidget(QFrame):
     def setup_ui(self):
         """设置UI"""
         self.setFrameShape(QFrame.Shape.Box)
+        # 防止水平溢出
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding,  # 水平扩展，但不超出容器
+            QSizePolicy.Policy.Minimum     # 垂直最小，允许内容完整显示
+        )
+        # 设置固定最大宽度，防止溢出
+        self.setMaximumWidth(500)  # 小于控制面板宽度
         self.setStyleSheet("""
             QFrame {
                 background: #f0f9ff;
@@ -129,11 +136,12 @@ class GestureStatsWidget(QFrame):
             }
         """)
         
-        # 主布局改为垂直布局，适合紧凑视图
+        # 主布局采用垂直布局，避免水平溢出
         layout = QVBoxLayout(self)
         layout.setSpacing(6)
+        layout.setContentsMargins(8, 8, 8, 8)
         
-        # 第一行：总计信息（始终显示）
+        # 第一行：总计信息
         total_row = QHBoxLayout()
         title1 = QLabel("📊 总计")
         title1.setStyleSheet("font-weight: bold; color: #0369a1; font-size: 12px;")
@@ -144,30 +152,37 @@ class GestureStatsWidget(QFrame):
         total_row.addWidget(self.total_label)
         layout.addLayout(total_row)
         
-        # 第二行：手势排行（紧凑显示）
-        gesture_row = QVBoxLayout()
-        gesture_row.setSpacing(1)
+        # 第二行：手势排行（垂直布局，防止溢出）
+        gesture_container = QVBoxLayout()
+        gesture_container.setSpacing(2)
         title2 = QLabel("🏆 手势排行")
-        title2.setStyleSheet("font-weight: bold; color: #0369a1; font-size: 10px; margin-bottom: 1px;")
+        title2.setStyleSheet("font-weight: bold; color: #0369a1; font-size: 11px;")
         self.gesture_label = QLabel("暂无数据")
-        self.gesture_label.setStyleSheet("color: #1e40af; font-size: 8px; line-height: 1.0;")
-        self.gesture_label.setWordWrap(True)
-        self.gesture_label.setMaximumHeight(44)  # 进一步限制高度
-        gesture_row.addWidget(title2)
-        gesture_row.addWidget(self.gesture_label)
-        layout.addLayout(gesture_row)
+        self.gesture_label.setStyleSheet("color: #1e40af; font-size: 10px; line-height: 1.2;")
+        self.gesture_label.setWordWrap(True)  # 允许换行
+        self.gesture_label.setSizePolicy(
+            QSizePolicy.Policy.Expanding,  # 水平扩展
+            QSizePolicy.Policy.Minimum     # 垂直最小
+        )
+        gesture_container.addWidget(title2)
+        gesture_container.addWidget(self.gesture_label)
+        layout.addLayout(gesture_container)
         
-        # 第三行：类型分布（紧凑显示）
-        type_row = QHBoxLayout()
-        title3 = QLabel("📈 类型")
+        # 第三行：类型分布（垂直布局，防止溢出）
+        type_container = QVBoxLayout()
+        type_container.setSpacing(2)
+        title3 = QLabel("📈 类型分布")
         title3.setStyleSheet("font-weight: bold; color: #0369a1; font-size: 11px;")
         self.type_label = QLabel("无分布")
-        self.type_label.setStyleSheet("color: #1e40af; font-size: 9px; line-height: 1.1;")
-        self.type_label.setWordWrap(True)
-        type_row.addWidget(title3)
-        type_row.addStretch()
-        type_row.addWidget(self.type_label)
-        layout.addLayout(type_row)
+        self.type_label.setStyleSheet("color: #1e40af; font-size: 10px; line-height: 1.2;")
+        self.type_label.setWordWrap(True)  # 允许换行
+        self.type_label.setSizePolicy(
+            QSizePolicy.Policy.Expanding,  # 水平扩展
+            QSizePolicy.Policy.Minimum     # 垂直最小
+        )
+        type_container.addWidget(title3)
+        type_container.addWidget(self.type_label)
+        layout.addLayout(type_container)
     
     def update_stats(self, gesture_history: List[Dict[str, Any]]):
         """更新统计信息"""
@@ -200,15 +215,14 @@ class GestureStatsWidget(QFrame):
         # 更新总计
         self.total_label.setText(str(total))
         
-        # 更新手势排行（紧凑显示前2个）
+        # 更新手势排行（显示前5个，完整名称）
         if gesture_counts:
             gesture_text = ""
             sorted_gestures = sorted(gesture_counts.items(), key=lambda x: x[1], reverse=True)
-            for i, (gesture, count) in enumerate(sorted_gestures[:2]):
+            for i, (gesture, count) in enumerate(sorted_gestures[:5]):
                 percentage = (count / total * 100) if total > 0 else 0
-                # 简化显示格式
-                gesture_name = gesture[:8] + "..." if len(gesture) > 8 else gesture
-                gesture_text += f"{i+1}.{gesture_name}: {count}\n"
+                # 显示完整手势名称和百分比
+                gesture_text += f"{i+1}. {gesture}: {count}次 ({percentage:.0f}%)\n"
             self.gesture_label.setText(gesture_text.strip())
         else:
             self.gesture_label.setText("暂无数据")
@@ -246,15 +260,19 @@ class GestureHistoryWidget(QWidget):
         self.refresh_timer.start(1000)  # 每秒刷新一次
     
     def setup_ui(self):
-        """设置UI"""
-        # 设置组件的最小高度，确保有足够空间显示记录
-        self.setMinimumHeight(400)
+        """设置UI - 整个手势历史区域可滚动"""
+        # 设置组件大小策略
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding,   # 水平扩展
+            QSizePolicy.Policy.Expanding    # 垂直扩展
+        )
         
-        layout = QVBoxLayout(self)
-        layout.setSpacing(4)
-        layout.setContentsMargins(4, 4, 4, 4)
+        # 主布局：只包含标题和滚动区域
+        main_layout = QVBoxLayout(self)
+        main_layout.setSpacing(4)
+        main_layout.setContentsMargins(4, 4, 4, 4)
         
-        # 标题和控制区域
+        # 标题和控制区域（固定在顶部，不滚动）
         header_layout = QHBoxLayout()
         
         title = QLabel("🕒 手势历史记录")
@@ -281,19 +299,73 @@ class GestureHistoryWidget(QWidget):
         self.clear_btn.clicked.connect(self.clear_history_requested.emit)
         header_layout.addWidget(self.clear_btn)
         
-        layout.addLayout(header_layout)
+        main_layout.addLayout(header_layout)
         
-        # 主内容区域 - 改为上下布局
-        content_layout = QVBoxLayout()
+        # 创建整体滚动区域（包含统计信息和记录列表）
+        self.scroll_area = QScrollArea()
+        # 设置固定最大宽度，防止溢出
+        self.scroll_area.setMaximumWidth(590)  # 小于控制面板宽度
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # 禁用水平滚动
+        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)      # 需要时显示垂直滚动
+        # 确保滚动区域不超出容器
+        self.scroll_area.setSizePolicy(
+            QSizePolicy.Policy.Expanding,   # 水平扩展但不超出
+            QSizePolicy.Policy.Expanding    # 垂直扩展
+        )
+        self.scroll_area.setStyleSheet("""
+            QScrollArea {
+                border: 1px solid #e5e7eb;
+                border-radius: 4px;
+                background: #f9fafb;
+            }
+            QScrollBar:vertical {
+                border: none;
+                background: #f1f5f9;
+                width: 8px;
+                border-radius: 4px;
+            }
+            QScrollBar::handle:vertical {
+                background: #cbd5e1;
+                min-height: 20px;
+                border-radius: 4px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #94a3b8;
+            }
+            QScrollBar::add-line:vertical,
+            QScrollBar::sub-line:vertical {
+                border: none;
+                background: none;
+                height: 0px;
+            }
+        """)
         
-        # 上方：统计信息（紧凑显示）
+        # 滚动内容容器（包含统计信息和记录列表）
+        self.scroll_content = QWidget()
+        # 设置固定最大宽度，防止溢出
+        self.scroll_content.setMaximumWidth(580)  # 小于控制面板宽度
+        # 确保滚动内容不会水平溢出
+        self.scroll_content.setSizePolicy(
+            QSizePolicy.Policy.Expanding,   # 水平扩展但适应容器
+            QSizePolicy.Policy.Minimum      # 垂直最小，允许内容扩展
+        )
+        content_layout = QVBoxLayout(self.scroll_content)
+        content_layout.setSpacing(8)
+        content_layout.setContentsMargins(6, 6, 6, 6)
+        
+        # 统计信息区域（完整显示，不压缩）
         self.stats_widget = GestureStatsWidget()
-        self.stats_widget.setMaximumHeight(90)  # 更进一步限制高度
-        self.stats_widget.setMinimumHeight(65)  # 设置最小高度
+        self.stats_widget.setSizePolicy(
+            QSizePolicy.Policy.Expanding,  # 水平扩展
+            QSizePolicy.Policy.Minimum     # 垂直最小，允许完整显示
+        )
         content_layout.addWidget(self.stats_widget)
         
-        # 下方：历史记录列表
+        # 记录列表区域（直接添加，不再嵌套滚动）
         history_group = QGroupBox("📜 记录列表")
+        # 设置固定最大宽度，防止溢出
+        history_group.setMaximumWidth(580)  # 小于控制面板宽度
         history_group.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -311,63 +383,28 @@ class GestureHistoryWidget(QWidget):
             }
         """)
         
+        # 记录列表容器（不再需要内部滚动）
         history_layout = QVBoxLayout(history_group)
         history_layout.setSpacing(2)
-        history_layout.setContentsMargins(4, 8, 4, 4)
+        history_layout.setContentsMargins(8, 12, 8, 8)
         
-        # 滚动区域 - 确保有足够的高度
-        self.scroll_area = QScrollArea()
-        self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.scroll_area.setMinimumHeight(150)  # 调整最小高度
-        # 设置滚动区域的大小策略，让它能够垂直扩展
-        from PyQt6.QtWidgets import QSizePolicy
-        self.scroll_area.setSizePolicy(
-            QSizePolicy.Policy.Expanding,
-            QSizePolicy.Policy.Expanding
-        )
-        self.scroll_area.setStyleSheet("""
-            QScrollArea {
-                border: 1px solid #e5e7eb;
-                border-radius: 4px;
-                background: #f9fafb;
-            }
-            QScrollBar:vertical {
-                border: none;
-                background: #f1f5f9;
-                width: 6px;
-                border-radius: 3px;
-            }
-            QScrollBar::handle:vertical {
-                background: #cbd5e1;
-                min-height: 20px;
-                border-radius: 3px;
-            }
-            QScrollBar::handle:vertical:hover {
-                background: #94a3b8;
-            }
-            QScrollBar::add-line:vertical,
-            QScrollBar::sub-line:vertical {
-                border: none;
-                background: none;
-                height: 0px;
-            }
-        """)
-        
-        # 历史记录容器
+        # 历史记录直接容器（所有记录项的容器）
         self.history_container = QWidget()
+        # 确保历史记录容器不会水平溢出
+        self.history_container.setSizePolicy(
+            QSizePolicy.Policy.Expanding,    # 水平扩展但适应父容器
+            QSizePolicy.Policy.Minimum       # 垂直适应内容
+        )
         self.history_layout = QVBoxLayout(self.history_container)
-        self.history_layout.setSpacing(4)  # 增加间距，确保记录项不会挤压
-        self.history_layout.setContentsMargins(4, 4, 4, 4)
-        self.history_layout.addStretch()
+        self.history_layout.setSpacing(6)
+        self.history_layout.setContentsMargins(0, 0, 0, 0)
         
-        self.scroll_area.setWidget(self.history_container)
-        history_layout.addWidget(self.scroll_area)
-        
+        history_layout.addWidget(self.history_container)
         content_layout.addWidget(history_group)
         
-        layout.addLayout(content_layout)
+        # 设置滚动区域的内容
+        self.scroll_area.setWidget(self.scroll_content)
+        main_layout.addWidget(self.scroll_area)
         
         # 初始状态
         self.show_empty_state()
@@ -397,6 +434,7 @@ class GestureHistoryWidget(QWidget):
         if len(self.gesture_history) > self.max_display_items * 2:
             self.gesture_history = self.gesture_history[-self.max_display_items:]
         
+        # 刷新显示并自动滚动到新记录
         self.refresh_display()
     
     def refresh_display(self):
@@ -414,13 +452,11 @@ class GestureHistoryWidget(QWidget):
             recent_history = self.gesture_history[-self.max_display_items:]
             for gesture_data in reversed(recent_history):
                 item = GestureHistoryItem(gesture_data)
-                self.history_layout.insertWidget(0, item)
+                self.history_layout.addWidget(item)  # 直接添加到末尾，保持时间顺序
             
-            # 添加弹性空间
-            self.history_layout.addStretch()
-            
-            # 自动滚动到顶部（最新记录）
-            self.scroll_area.verticalScrollBar().setValue(0)
+            # 优化滚动行为：滚动到底部显示最新记录
+            # 使用QTimer延迟执行，确保布局完成后再滚动
+            QTimer.singleShot(50, self._scroll_to_latest)
         
         # 更新统计
         self.stats_widget.update_stats(self.gesture_history)
@@ -432,4 +468,31 @@ class GestureHistoryWidget(QWidget):
     
     def get_history_count(self) -> int:
         """获取历史记录数量"""
-        return len(self.gesture_history) 
+        return len(self.gesture_history)
+    
+    def add_test_data(self):
+        """添加测试数据（用于验证滚动效果）"""
+        import time
+        test_gestures = [
+            {"gesture": "thumbs_up", "hand_type": "right", "confidence": 85, "gesture_type": "static", "timestamp": time.time(), "details": {"tag": "start"}},
+            {"gesture": "peace_sign", "hand_type": "left", "confidence": 92, "gesture_type": "static", "timestamp": time.time() + 1, "details": {"tag": "end"}},
+            {"gesture": "swipe_left", "hand_type": "right", "confidence": 78, "gesture_type": "dynamic", "timestamp": time.time() + 2, "details": {"tag": "start"}},
+            {"gesture": "swipe_right", "hand_type": "left", "confidence": 88, "gesture_type": "dynamic", "timestamp": time.time() + 3, "details": {"tag": "end"}},
+            {"gesture": "ok_gesture", "hand_type": "right", "confidence": 95, "gesture_type": "static", "timestamp": time.time() + 4, "details": {"tag": "start"}},
+        ]
+        
+        for gesture_data in test_gestures:
+            self.add_gesture(gesture_data)
+    
+    def _scroll_to_latest(self):
+        """滚动到最新记录（底部）"""
+        try:
+            # 确保布局更新完成
+            self.scroll_content.updateGeometry()
+            self.scroll_area.updateGeometry()
+            
+            # 滚动到底部，显示最新添加的记录
+            scrollbar = self.scroll_area.verticalScrollBar()
+            scrollbar.setValue(scrollbar.maximum())
+        except Exception as e:
+            print(f"滚动到最新记录失败: {e}") 

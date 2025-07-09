@@ -37,9 +37,10 @@ class MainWindowUI(QMainWindow):
         self.expanded_view = False
         self.is_detecting = False
         
-        # 响应式布局设置
-        self.compact_width_threshold = 500  # 紧凑模式的宽度阈值
+        # 响应式布局设置 - 重构为以水平宽度为主的布局管理
+        self.compact_width_threshold = 900  # 调整紧凑模式的宽度阈值，考虑手势历史组件的宽度需求
         self.auto_layout = True  # 自动布局管理
+        self.min_content_width = 600  # 内容区域最小宽度，确保手势历史组件不会溢出
         
         # 初始化业务逻辑
         self.gesture_bindings = GestureBindings()
@@ -152,9 +153,19 @@ class MainWindowUI(QMainWindow):
             # 在标签页中添加手势历史组件
             self.tabWidget.addTab(self.gesture_history_widget, "🕒 手势历史")
             
+            # 强制设置手势历史组件的最大宽度，绕过.ui文件限制
+            self.gesture_history_widget.setMaximumWidth(580)
+            
+            # 同时强制设置tabWidget的最大宽度
+            self.tabWidget.setMaximumWidth(600)
+            
             # 设置标签页图标样式
             tab_count = self.tabWidget.count()
             self.tabWidget.setTabToolTip(tab_count - 1, "查看手势识别历史记录和统计信息")
+            
+            # 强制刷新布局
+            self.gesture_history_widget.updateGeometry()
+            self.tabWidget.updateGeometry()
             
         except Exception as e:
             self.log_message(f"添加手势历史标签页失败: {e}")
@@ -239,7 +250,7 @@ class MainWindowUI(QMainWindow):
         
         # 设置窗口属性和按钮文本
         self.setWindowTitle("手势检测控制中心 - Socket服务器")
-        self.setMinimumSize(400, 600)
+        self.setMinimumSize(620, 600)  # 增加最小宽度以确保手势历史组件不会溢出
         
         # 更新按钮文本使其更明确
         self.startBtn.setText("🔌 启动Socket服务器")
@@ -247,10 +258,10 @@ class MainWindowUI(QMainWindow):
         self.startBtn.setToolTip("启动Socket服务器，等待dyn_gestures项目连接并发送手势数据")
         self.stopBtn.setToolTip("停止Socket服务器，断开与dyn_gestures项目的连接")
         
-        # 强制初始状态：紧凑模式
+        # 强制初始状态：紧凑模式，但给予更合理的初始尺寸
         self.expanded_view = False
         self.contentPanel.setVisible(False)
-        self.resize(450, 700)
+        self.resize(630, 700)  # 增加初始宽度以容纳手势历史组件
         
         # 更新菜单项状态
         self.actionToggleExpandedView.setChecked(False)
@@ -386,7 +397,7 @@ class MainWindowUI(QMainWindow):
         if checked:
             # 展开视图：显示右侧面板
             self.contentPanel.setVisible(True)
-            self.resize(1000, 700)
+            self.resize(1200, 700)  # 增加宽度以容纳固定630px的控制面板
             self.log_message("已切换到展开视图模式")
             
             # 根据调试模式显示相应面板
@@ -401,7 +412,7 @@ class MainWindowUI(QMainWindow):
             self.contentPanel.setVisible(False)
             self.welcomePanel.setVisible(False)
             self.debugPanel.setVisible(False)
-            self.resize(450, 700)
+            self.resize(630, 700)  # 增加宽度以容纳580px的手势历史组件
             self.log_message("已切换到紧凑视图模式，仅显示控制面板")
         
         # 更新菜单项状态
@@ -412,18 +423,25 @@ class MainWindowUI(QMainWindow):
         self.settings.setValue('auto_layout', self.auto_layout)
     
     def update_responsive_layout(self):
-        """更新响应式布局"""
+        """更新响应式布局 - 重构为水平宽度优先的管理"""
         if not self.auto_layout:
             return
             
         current_width = self.width()
-        should_expand = current_width >= self.compact_width_threshold
+        current_height = self.height()
+        
+        # 计算控制面板占用的宽度（包括边距）
+        control_panel_width = self.controlPanel.width() + 20  # 考虑边距
+        available_width_for_content = current_width - control_panel_width
+        
+        # 基于水平空间决定是否展开内容面板
+        should_expand = available_width_for_content >= self.min_content_width
         
         if should_expand != self.expanded_view:
             if should_expand:
-                self.log_message("窗口宽度足够，自动切换到展开视图")
+                self.log_message(f"水平空间足够 ({available_width_for_content}px)，自动展开内容面板")
             else:
-                self.log_message("窗口宽度较小，自动切换到紧凑视图")
+                self.log_message(f"水平空间不足 ({available_width_for_content}px)，切换到紧凑视图")
             
             self.expanded_view = should_expand
             self.contentPanel.setVisible(should_expand)
@@ -437,6 +455,11 @@ class MainWindowUI(QMainWindow):
                 else:
                     self.welcomePanel.setVisible(True)
                     self.debugPanel.setVisible(False)
+        
+        # 确保窗口有足够的高度来显示内容（移除水平滚动的需要）
+        min_required_height = 500  # 基础最小高度
+        if current_height < min_required_height:
+            self.resize(current_width, min_required_height)
     
     def restore_settings(self):
         """恢复设置"""
@@ -461,9 +484,10 @@ class MainWindowUI(QMainWindow):
         self.actionToggleExpandedView.setChecked(False)
         
         # 只在程序真正需要时才调整窗口大小
-        # 如果当前窗口宽度小于阈值，才强制设置为紧凑模式大小
-        if self.width() < self.compact_width_threshold:
-            self.resize(450, 700)
+        # 确保窗口有足够的宽度来容纳内容而不溢出
+        min_required_width = 620  # 最小宽度以确保手势历史组件不会水平溢出
+        if self.width() < min_required_width:
+            self.resize(min_required_width, max(700, self.height()))
         
         # 提示用户如何使用
         if not saved_auto_layout and saved_expanded_view:
