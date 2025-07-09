@@ -23,6 +23,13 @@
    <string notr="true">QMainWindow {
     background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
         stop:0 #f8fafc, stop:1 #e2e8f0);
+    background-image: url(DDYN.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+}
+QMainWindow #centralwidget {
+    background: rgba(248, 250, 252, 0.75);
 }
 QLabel {
     font-size: 13px;
@@ -86,7 +93,7 @@ QTabBar::tab {
       </property>
       <property name="styleSheet">
        <string notr="true">QFrame {
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
     border: 2px solid #e2e8f0;
     border-radius: 10px;
     padding: 12px;
@@ -356,9 +363,47 @@ QPushButton:checked:hover {
          <property name="currentIndex">
           <number>0</number>
          </property>
+         <property name="styleSheet">
+          <string notr="true">QTabWidget::pane {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 4px;
+}
+QTabWidget::tab-bar {
+    alignment: left;
+}
+QTabBar::tab {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #f8fafc, stop:1 #e2e8f0);
+    border: 2px solid #cbd5e1;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    padding: 10px 22px;
+    margin-right: 2px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #374151;
+    min-width: 85px;
+}
+QTabBar::tab:selected {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #2563eb, stop:1 #1d4ed8);
+    color: white;
+    border: 2px solid #1d4ed8;
+    border-bottom: none;
+    padding: 10px 22px;
+}
+QTabBar::tab:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #3b82f6, stop:1 #2563eb);
+    color: white;
+    border: 2px solid #2563eb;
+}</string>
+         </property>
          <widget class="QWidget" name="gestureTab">
           <attribute name="title">
-           <string>手势绑定</string>
+           <string>绑定配置</string>
           </attribute>
           <layout class="QVBoxLayout" name="gestureLayout">
            <item>
@@ -464,7 +509,7 @@ QScrollBar::sub-line:vertical {
          </widget>
          <widget class="QWidget" name="settingsTab">
           <attribute name="title">
-           <string>设置</string>
+           <string>系统设置</string>
           </attribute>
           <layout class="QVBoxLayout" name="settingsLayout">
            <item>
@@ -698,8 +743,41 @@ QScrollBar::sub-line:vertical {
      <x>0</x>
      <y>0</y>
      <width>450</width>
-     <height>22</height>
+     <height>28</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QMenuBar {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #ffffff, stop:1 #f8fafc);
+    border: none;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 2px;
+    font-size: 16px;
+    font-weight: 600;
+}
+QMenuBar::item {
+    background: transparent;
+    padding: 6px 14px;
+    border-radius: 5px;
+    color: #1f2937;
+    font-size: 16px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    margin: 1px;
+}
+QMenuBar::item:selected {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #2563eb, stop:1 #1d4ed8);
+    color: white;
+    border: 1px solid #1d4ed8;
+}
+QMenuBar::item:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #1d4ed8, stop:1 #1e40af);
+    color: white;
+    border: 1px solid #1e40af;
+}</string>
    </property>
    <widget class="QMenu" name="menuDebug">
     <property name="title">

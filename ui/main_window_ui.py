@@ -151,7 +151,7 @@ class MainWindowUI(QMainWindow):
         """添加手势历史记录标签页"""
         try:
             # 在标签页中添加手势历史组件
-            self.tabWidget.addTab(self.gesture_history_widget, "🕒 手势历史")
+            self.tabWidget.addTab(self.gesture_history_widget, "历史记录")
             
             # 强制设置手势历史组件的最大宽度，绕过.ui文件限制
             self.gesture_history_widget.setMaximumWidth(580)
