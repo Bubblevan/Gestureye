@@ -36,54 +36,77 @@ class GestureBindings:
     def load_bindings(self) -> Dict[str, Dict[str, Any]]:
         """加载手势绑定配置"""        
         default_bindings = {
-            "HandOpen": {
+            # 静态手势
+            "FingerCountOne": {
                 "action_type": ActionType.SYSTEM_FUNCTION.value,
-                "action": "window_maximize",
-                "description": "将最上方的窗口全屏",
+                "action": "volume_up",
+                "description": "音量增加",
                 "enabled": True,
                 "gesture_type": "static"
             },
-            "TwoFingerSwipe": {
+            "FingerCountTwo": {
                 "action_type": ActionType.SYSTEM_FUNCTION.value,
-                "action": "window_minimize",
-                "description": "将最上方窗口最小化",
+                "action": "volume_down",
+                "description": "音量减少",
                 "enabled": True,
-                "gesture_type": "dynamic"
+                "gesture_type": "static"
             },
-            "HandClose": {
+            "FingerCountThree": {
                 "action_type": ActionType.SYSTEM_FUNCTION.value,
-                "action": "window_drag",
-                "description": "抓住窗口移动",
+                "action": "play_pause",
+                "description": "播放/暂停",
                 "enabled": True,
-                "gesture_type": "dynamic"
-            },
-            "HandSwipe": {
-                "action_type": ActionType.SYSTEM_FUNCTION.value,
-                "action": "window_switch",
-                "description": "切换窗口",
-                "enabled": True,
-                "gesture_type": "dynamic"
-            },
-            "HandFlip": {
-                "action_type": ActionType.SYSTEM_FUNCTION.value,
-                "action": "window_close",
-                "description": "关闭最上方窗口",
-                "enabled": True,
-                "gesture_type": "dynamic"
+                "gesture_type": "static"
             },
             "ThumbsUp": {
                 "action_type": ActionType.SYSTEM_FUNCTION.value,
-                "action": "window_scroll_up",
-                "description": "将最上方的窗口向上滚动",
+                "action": "volume_mute",
+                "description": "静音",
                 "enabled": True,
                 "gesture_type": "static"
             },
             "ThumbsDown": {
                 "action_type": ActionType.SYSTEM_FUNCTION.value,
-                "action": "window_scroll_down",
-                "description": "将最上方的窗口向下滚动",
+                "action": "brightness_down",
+                "description": "亮度减少",
                 "enabled": True,
                 "gesture_type": "static"
+            },
+            # 动态手势
+            "HandOpen": {
+                "action_type": ActionType.SYSTEM_FUNCTION.value,
+                "action": "window_maximize",
+                "description": "最大化窗口",
+                "enabled": True,
+                "gesture_type": "dynamic"
+            },
+            "HandClose": {
+                "action_type": ActionType.SYSTEM_FUNCTION.value,
+                "action": "window_minimize",
+                "description": "最小化窗口",
+                "enabled": True,
+                "gesture_type": "dynamic"
+            },
+            "HandSwipe": {
+                "action_type": ActionType.KEYBOARD_SHORTCUT.value,
+                "action": "alt+tab",
+                "description": "应用切换",
+                "enabled": True,
+                "gesture_type": "dynamic"
+            },
+            "HandFlip": {
+                "action_type": ActionType.KEYBOARD_SHORTCUT.value,
+                "action": "alt+f4",
+                "description": "关闭窗口",
+                "enabled": True,
+                "gesture_type": "dynamic"
+            },
+            "TwoFingerSwipe": {
+                "action_type": ActionType.KEYBOARD_SHORTCUT.value,
+                "action": "win+tab",
+                "description": "任务视图",
+                "enabled": True,
+                "gesture_type": "dynamic"
             }
         }
         

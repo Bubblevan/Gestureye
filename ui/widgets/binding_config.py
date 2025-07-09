@@ -11,7 +11,6 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 import json
 import os
-import time
 
 class GestureBindingDialog(QDialog):
     """手势绑定配置对话框"""
@@ -151,32 +150,8 @@ class GestureBindingDialog(QDialog):
         """)
         config_layout.addWidget(self.enabled_checkbox, 0, 1)
         
-        # 禁用识别
-        config_layout.addWidget(QLabel("手势识别:"), 1, 0)
-        self.recognition_enabled_checkbox = QCheckBox("启用此手势的识别")
-        self.recognition_enabled_checkbox.setChecked(True)  # 默认启用识别
-        self.recognition_enabled_checkbox.setStyleSheet("""
-            QCheckBox {
-                font-size: 13px;
-                color: #374151;
-            }
-            QCheckBox::indicator {
-                width: 16px;
-                height: 16px;
-            }
-            QCheckBox::indicator:checked {
-                background: #059669;
-                border: 1px solid #047857;
-            }
-            QCheckBox::indicator:unchecked {
-                background: #f87171;
-                border: 1px solid #dc2626;
-            }
-        """)
-        config_layout.addWidget(self.recognition_enabled_checkbox, 1, 1)
-        
         # 动作类型
-        config_layout.addWidget(QLabel("动作类型:"), 2, 0)
+        config_layout.addWidget(QLabel("动作类型:"), 1, 0)
         self.action_type_combo = QComboBox()
         self.action_type_combo.addItems([
             "系统功能",
@@ -199,10 +174,10 @@ class GestureBindingDialog(QDialog):
                 height: 12px;
             }
         """)
-        config_layout.addWidget(self.action_type_combo, 2, 1)
+        config_layout.addWidget(self.action_type_combo, 1, 1)
         
         # 动作设置
-        config_layout.addWidget(QLabel("动作设置:"), 3, 0)
+        config_layout.addWidget(QLabel("动作设置:"), 2, 0)
         self.action_combo = QComboBox()
         self.action_combo.setEditable(False)  # 改为纯选择模式
         self.action_combo.setStyleSheet("""
@@ -221,10 +196,10 @@ class GestureBindingDialog(QDialog):
                 height: 12px;
             }
         """)
-        config_layout.addWidget(self.action_combo, 3, 1)
+        config_layout.addWidget(self.action_combo, 2, 1)
         
         # 描述
-        config_layout.addWidget(QLabel("描述:"), 4, 0)
+        config_layout.addWidget(QLabel("描述:"), 3, 0)
         self.description_edit = QLineEdit()
         self.description_edit.setStyleSheet("""
             QLineEdit {
@@ -238,7 +213,7 @@ class GestureBindingDialog(QDialog):
                 border: 2px solid #2563eb;
             }
         """)
-        config_layout.addWidget(self.description_edit, 4, 1)
+        config_layout.addWidget(self.description_edit, 3, 1)
         
         config_group.setLayout(config_layout)
         right_layout.addWidget(config_group)
@@ -276,16 +251,13 @@ class GestureBindingDialog(QDialog):
                 color: #4b5563;
             }
         """)
-        self.help_text.setPlainText("""配置说明:
-• 启用状态: 控制手势绑定的动作是否执行
-• 手势识别: 控制是否检测此手势（可以禁用识别但保留配置）
-• 动作类型: 系统功能、键盘快捷键、自定义功能
-• 动作设置: 选择具体的动作或快捷键
+        self.help_text.setPlainText("""动作类型说明:
+• 系统功能: 音量控制、媒体控制、亮度控制等
+• 键盘快捷键: 常用的组合键和单独按键
+• 自定义功能: 用户自定义的特殊功能
 
-手势识别控制：
-- 启用识别：正常检测此手势
-- 禁用识别：不检测此手势，但保留动作配置
-- 修改后点击"保存"生效，"重置"恢复默认设置""")
+选择合适的动作类型后，从下拉菜单中选择具体的动作
+修改后点击"保存"生效，"重置"恢复默认设置""")
         help_layout.addWidget(self.help_text)
         
         help_group.setLayout(help_layout)
@@ -372,7 +344,6 @@ class GestureBindingDialog(QDialog):
         self.gesture_list.currentRowChanged.connect(self.on_gesture_selected)
         self.action_type_combo.currentTextChanged.connect(self.on_action_type_changed)
         self.enabled_checkbox.toggled.connect(self.on_config_changed)
-        self.recognition_enabled_checkbox.toggled.connect(self.on_config_changed)
         self.action_combo.currentTextChanged.connect(self.on_config_changed)
         self.description_edit.textChanged.connect(self.on_config_changed)
         
@@ -390,27 +361,16 @@ class GestureBindingDialog(QDialog):
             else:
                 # 使用默认配置
                 self.current_bindings = {
-                    # 静态手势默认配置
-                    "FingerCountOne": {"action_type": "system_function", "action": "volume_up", "description": "音量增加", "enabled": True, "recognition_enabled": True},
-                    "FingerCountTwo": {"action_type": "system_function", "action": "volume_down", "description": "音量减少", "enabled": True, "recognition_enabled": True},
-                    "FingerCountThree": {"action_type": "system_function", "action": "volume_mute", "description": "静音", "enabled": True, "recognition_enabled": True},
-                    "ThumbsUp": {"action_type": "system_function", "action": "play_pause", "description": "播放/暂停", "enabled": True, "recognition_enabled": True},
-                    "ThumbsDown": {"action_type": "system_function", "action": "previous_track", "description": "上一首", "enabled": True, "recognition_enabled": True},
-                    "PeaceSign": {"action_type": "system_function", "action": "next_track", "description": "下一首", "enabled": True, "recognition_enabled": True},
-                    "OkSign": {"action_type": "system_function", "action": "show_desktop", "description": "显示桌面", "enabled": True, "recognition_enabled": True},
-                    
-                    # 动态手势默认配置
-                    "HandOpen": {"action_type": "system_function", "action": "brightness_up", "description": "亮度增加", "enabled": True, "recognition_enabled": True},
-                    "HandClose": {"action_type": "system_function", "action": "brightness_down", "description": "亮度减少", "enabled": True, "recognition_enabled": True},
-                    "HandSwipe": {"action_type": "keyboard_shortcut", "action": "alt+tab", "description": "应用切换", "enabled": True, "recognition_enabled": True},
-                    "HandFlip": {"action_type": "system_function", "action": "lock_screen", "description": "锁定屏幕", "enabled": True, "recognition_enabled": True},
-                    "TwoFingerSwipe": {"action_type": "keyboard_shortcut", "action": "ctrl+tab", "description": "标签切换", "enabled": True, "recognition_enabled": True},
-                    "PinchGesture": {"action_type": "keyboard_shortcut", "action": "ctrl+c", "description": "复制", "enabled": True, "recognition_enabled": True},
-                    "WaveGesture": {"action_type": "keyboard_shortcut", "action": "win+d", "description": "显示桌面", "enabled": True, "recognition_enabled": True},
-                    "SwipeLeft": {"action_type": "keyboard_shortcut", "action": "alt+left", "description": "后退", "enabled": True, "recognition_enabled": True},
-                    "SwipeRight": {"action_type": "keyboard_shortcut", "action": "alt+right", "description": "前进", "enabled": True, "recognition_enabled": True},
-                    "SwipeUp": {"action_type": "keyboard_shortcut", "action": "page_up", "description": "向上滚动", "enabled": True, "recognition_enabled": True},
-                    "SwipeDown": {"action_type": "keyboard_shortcut", "action": "page_down", "description": "向下滚动", "enabled": True, "recognition_enabled": True}
+                    "thumbs_up": {"action_type": "system_function", "action": "volume_up", "description": "音量增加", "enabled": True},
+                    "thumbs_down": {"action_type": "system_function", "action": "volume_down", "description": "音量减少", "enabled": True},
+                    "peace": {"action_type": "system_function", "action": "play_pause", "description": "播放/暂停", "enabled": True},
+                    "ok": {"action_type": "system_function", "action": "volume_mute", "description": "静音", "enabled": True},
+                    "pinch": {"action_type": "system_function", "action": "previous_track", "description": "上一首", "enabled": True},
+                    "wave": {"action_type": "system_function", "action": "next_track", "description": "下一首", "enabled": True},
+                    "swipe_left": {"action_type": "keyboard_shortcut", "action": "alt+left", "description": "后退", "enabled": True},
+                    "swipe_right": {"action_type": "keyboard_shortcut", "action": "alt+right", "description": "前进", "enabled": True},
+                    "swipe_up": {"action_type": "keyboard_shortcut", "action": "page_up", "description": "向上滚动", "enabled": True},
+                    "swipe_down": {"action_type": "keyboard_shortcut", "action": "page_down", "description": "向下滚动", "enabled": True}
                 }
         except Exception as e:
             print(f"加载配置失败: {e}")
@@ -421,7 +381,7 @@ class GestureBindingDialog(QDialog):
         # 清空列表
         self.gesture_list.clear()
         
-        # 手势名称映射
+        # 手势名称映射 - 与dyn_gestures项目中定义的手势对应
         gesture_names = {
             # 静态手势
             "FingerCountOne": "数字一手势",
@@ -429,21 +389,12 @@ class GestureBindingDialog(QDialog):
             "FingerCountThree": "数字三手势",
             "ThumbsUp": "竖大拇指",
             "ThumbsDown": "倒竖大拇指",
-            "PeaceSign": "V字手势",
-            "OkSign": "OK手势",
-            
             # 动态手势
             "HandOpen": "握拳到张开",
             "HandClose": "张开到握拳",
-            "HandSwipe": "左右挥手",
+            "HandSwipe": "手左右挥动",
             "HandFlip": "手掌翻转",
-            "TwoFingerSwipe": "双指滑动",
-            "PinchGesture": "捏合手势",
-            "WaveGesture": "挥手手势",
-            "SwipeLeft": "向左滑动",
-            "SwipeRight": "向右滑动",
-            "SwipeUp": "向上滑动",
-            "SwipeDown": "向下滑动"
+            "TwoFingerSwipe": "双指滑动"
         }
         
         # 添加手势到列表
@@ -451,26 +402,12 @@ class GestureBindingDialog(QDialog):
             item = QListWidgetItem(gesture_name)
             item.setData(Qt.ItemDataRole.UserRole, gesture_key)
             
-            # 设置样式根据启用状态和识别状态
+            # 设置样式根据启用状态
             if gesture_key in self.current_bindings:
                 enabled = self.current_bindings[gesture_key].get("enabled", True)
-                recognition_enabled = self.current_bindings[gesture_key].get("recognition_enabled", True)
-                
-                status_text = ""
                 if not enabled:
-                    status_text += " (已禁用)"
-                if not recognition_enabled:
-                    status_text += " (识别关闭)"
-                
-                if status_text:
-                    item.setText(f"{gesture_name}{status_text}")
-                    if not recognition_enabled:
-                        item.setData(Qt.ItemDataRole.ForegroundRole, "#f87171")  # 红色表示识别关闭
-                    elif not enabled:
-                        item.setData(Qt.ItemDataRole.ForegroundRole, "#9ca3af")  # 灰色表示动作禁用
-                else:
-                    item.setText(gesture_name)
-                    item.setData(Qt.ItemDataRole.ForegroundRole, "#000000")  # 黑色表示正常状态
+                    item.setText(f"{gesture_name} (已禁用)")
+                    item.setData(Qt.ItemDataRole.ForegroundRole, "#9ca3af")
             
             self.gesture_list.addItem(item)
         
@@ -495,7 +432,6 @@ class GestureBindingDialog(QDialog):
         
         # 更新UI
         self.enabled_checkbox.setChecked(config.get("enabled", True))
-        self.recognition_enabled_checkbox.setChecked(config.get("recognition_enabled", True))
         
         # 设置动作类型
         action_type = config.get("action_type", "system_function")
@@ -649,7 +585,6 @@ class GestureBindingDialog(QDialog):
         # 更新配置
         config = self.current_bindings[gesture_key]
         config["enabled"] = self.enabled_checkbox.isChecked()
-        config["recognition_enabled"] = self.recognition_enabled_checkbox.isChecked()
         
         # 转换动作类型
         action_type_text = self.action_type_combo.currentText()
@@ -669,48 +604,25 @@ class GestureBindingDialog(QDialog):
         
         # 更新列表显示
         gesture_names = {
-            # 静态手势
-            "FingerCountOne": "数字一手势",
-            "FingerCountTwo": "数字二手势",
-            "FingerCountThree": "数字三手势",
-            "ThumbsUp": "竖大拇指",
-            "ThumbsDown": "倒竖大拇指",
-            "PeaceSign": "V字手势",
-            "OkSign": "OK手势",
-            
-            # 动态手势
-            "HandOpen": "握拳到张开",
-            "HandClose": "张开到握拳",
-            "HandSwipe": "左右挥手",
-            "HandFlip": "手掌翻转",
-            "TwoFingerSwipe": "双指滑动",
-            "PinchGesture": "捏合手势",
-            "WaveGesture": "挥手手势",
-            "SwipeLeft": "向左滑动",
-            "SwipeRight": "向右滑动",
-            "SwipeUp": "向上滑动",
-            "SwipeDown": "向下滑动"
+            "thumbs_up": "拇指向上",
+            "thumbs_down": "拇指向下", 
+            "peace": "V字手势",
+            "ok": "OK手势",
+            "pinch": "捏合手势",
+            "wave": "挥手手势",
+            "swipe_left": "向左滑动",
+            "swipe_right": "向右滑动",
+            "swipe_up": "向上滑动",
+            "swipe_down": "向下滑动"
         }
         
         gesture_name = gesture_names.get(gesture_key, gesture_key)
-        enabled = config["enabled"]
-        recognition_enabled = config.get("recognition_enabled", True)
-        
-        status_text = ""
-        if not enabled:
-            status_text += " (已禁用)"
-        if not recognition_enabled:
-            status_text += " (识别关闭)"
-        
-        if status_text:
-            item.setText(f"{gesture_name}{status_text}")
-            if not recognition_enabled:
-                item.setData(Qt.ItemDataRole.ForegroundRole, "#f87171")  # 红色表示识别关闭
-            elif not enabled:
-                item.setData(Qt.ItemDataRole.ForegroundRole, "#9ca3af")  # 灰色表示动作禁用
-        else:
+        if config["enabled"]:
             item.setText(gesture_name)
-            item.setData(Qt.ItemDataRole.ForegroundRole, "#000000")  # 黑色表示正常状态
+            item.setData(Qt.ItemDataRole.ForegroundRole, "#000000")
+        else:
+            item.setText(f"{gesture_name} (已禁用)")
+            item.setData(Qt.ItemDataRole.ForegroundRole, "#9ca3af")
     
     def reset_current_gesture(self):
         """重置当前手势"""
@@ -726,27 +638,16 @@ class GestureBindingDialog(QDialog):
         
         # 默认配置
         default_configs = {
-            # 静态手势默认配置
-            "FingerCountOne": {"action_type": "system_function", "action": "volume_up", "description": "音量增加", "enabled": True, "recognition_enabled": True},
-            "FingerCountTwo": {"action_type": "system_function", "action": "volume_down", "description": "音量减少", "enabled": True, "recognition_enabled": True},
-            "FingerCountThree": {"action_type": "system_function", "action": "volume_mute", "description": "静音", "enabled": True, "recognition_enabled": True},
-            "ThumbsUp": {"action_type": "system_function", "action": "play_pause", "description": "播放/暂停", "enabled": True, "recognition_enabled": True},
-            "ThumbsDown": {"action_type": "system_function", "action": "previous_track", "description": "上一首", "enabled": True, "recognition_enabled": True},
-            "PeaceSign": {"action_type": "system_function", "action": "next_track", "description": "下一首", "enabled": True, "recognition_enabled": True},
-            "OkSign": {"action_type": "system_function", "action": "show_desktop", "description": "显示桌面", "enabled": True, "recognition_enabled": True},
-            
-            # 动态手势默认配置
-            "HandOpen": {"action_type": "system_function", "action": "brightness_up", "description": "亮度增加", "enabled": True, "recognition_enabled": True},
-            "HandClose": {"action_type": "system_function", "action": "brightness_down", "description": "亮度减少", "enabled": True, "recognition_enabled": True},
-            "HandSwipe": {"action_type": "keyboard_shortcut", "action": "alt+tab", "description": "应用切换", "enabled": True, "recognition_enabled": True},
-            "HandFlip": {"action_type": "system_function", "action": "lock_screen", "description": "锁定屏幕", "enabled": True, "recognition_enabled": True},
-            "TwoFingerSwipe": {"action_type": "keyboard_shortcut", "action": "ctrl+tab", "description": "标签切换", "enabled": True, "recognition_enabled": True},
-            "PinchGesture": {"action_type": "keyboard_shortcut", "action": "ctrl+c", "description": "复制", "enabled": True, "recognition_enabled": True},
-            "WaveGesture": {"action_type": "keyboard_shortcut", "action": "win+d", "description": "显示桌面", "enabled": True, "recognition_enabled": True},
-            "SwipeLeft": {"action_type": "keyboard_shortcut", "action": "alt+left", "description": "后退", "enabled": True, "recognition_enabled": True},
-            "SwipeRight": {"action_type": "keyboard_shortcut", "action": "alt+right", "description": "前进", "enabled": True, "recognition_enabled": True},
-            "SwipeUp": {"action_type": "keyboard_shortcut", "action": "page_up", "description": "向上滚动", "enabled": True, "recognition_enabled": True},
-            "SwipeDown": {"action_type": "keyboard_shortcut", "action": "page_down", "description": "向下滚动", "enabled": True, "recognition_enabled": True}
+            "thumbs_up": {"action_type": "system_function", "action": "volume_up", "description": "音量增加", "enabled": True},
+            "thumbs_down": {"action_type": "system_function", "action": "volume_down", "description": "音量减少", "enabled": True},
+            "peace": {"action_type": "system_function", "action": "play_pause", "description": "播放/暂停", "enabled": True},
+            "ok": {"action_type": "system_function", "action": "volume_mute", "description": "静音", "enabled": True},
+            "pinch": {"action_type": "system_function", "action": "previous_track", "description": "上一首", "enabled": True},
+            "wave": {"action_type": "system_function", "action": "next_track", "description": "下一首", "enabled": True},
+            "swipe_left": {"action_type": "keyboard_shortcut", "action": "alt+left", "description": "后退", "enabled": True},
+            "swipe_right": {"action_type": "keyboard_shortcut", "action": "alt+right", "description": "前进", "enabled": True},
+            "swipe_up": {"action_type": "keyboard_shortcut", "action": "page_up", "description": "向上滚动", "enabled": True},
+            "swipe_down": {"action_type": "keyboard_shortcut", "action": "page_down", "description": "向下滚动", "enabled": True}
         }
         
         if gesture_key in default_configs:
@@ -763,43 +664,8 @@ class GestureBindingDialog(QDialog):
             # 发送信号
             self.gesture_bindings_updated.emit(self.current_bindings)
             
-            # 向dyn_gestures发送手势识别状态更新
-            self.send_recognition_status_update()
-            
             # 关闭对话框
             self.accept()
             
         except Exception as e:
-            QMessageBox.critical(self, "错误", f"保存配置失败: {e}")
-    
-    def send_recognition_status_update(self):
-        """向dyn_gestures发送手势识别状态更新"""
-        try:
-            # 获取父窗口的socket服务器
-            main_window = self.parent()
-            if main_window and hasattr(main_window, 'socket_receiver'):
-                socket_server = main_window.socket_receiver.socket_server
-                
-                if socket_server and socket_server.is_running:
-                    # 准备状态数据
-                    recognition_status = {}
-                    for gesture_key, config in self.current_bindings.items():
-                        recognition_status[gesture_key] = config.get('recognition_enabled', True)
-                    
-                    # 构造消息
-                    message = {
-                        'type': 'recognition_status_update',
-                        'recognition_status': recognition_status,
-                        'timestamp': time.time()
-                    }
-                    
-                    # 广播给所有客户端（主要是dyn_gestures）
-                    success_count = socket_server.broadcast_message(message)
-                    
-                    if success_count > 0:
-                        print(f"[BINDING_CONFIG] 已向 {success_count} 个客户端发送识别状态更新")
-                    else:
-                        print("[BINDING_CONFIG] 没有连接的客户端，无法发送识别状态更新")
-                        
-        except Exception as e:
-            print(f"[BINDING_CONFIG] 发送识别状态更新失败: {e}") 
+            QMessageBox.critical(self, "错误", f"保存配置失败: {e}") 
