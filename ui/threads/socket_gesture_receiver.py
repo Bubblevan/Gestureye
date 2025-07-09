@@ -50,7 +50,7 @@ class SocketGestureReceiverThread(QThread):
                     self.msleep(100)  # 睡眠100毫秒
             else:
                 self.error_occurred.emit("启动Socket服务器失败")
-                
+                        
         except Exception as e:
             self.error_occurred.emit(f"运行Socket服务器时出错: {e}")
         finally:
@@ -79,7 +79,7 @@ class SocketGestureReceiverThread(QThread):
             elif gesture_type == 'text':
                 # 文本消息
                 self.status_updated.emit(f"收到文本消息: {processed_data.get('message', '')}")
-                
+            
         except Exception as e:
             self.error_occurred.emit(f"处理手势数据时出错: {e}")
     

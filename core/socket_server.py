@@ -27,6 +27,7 @@ class SocketServer(QObject):
         self.is_running = False
         self.server_thread: Optional[threading.Thread] = None
         self.client_threads = []
+        self.client_sockets = {}  # 存储客户端socket，用于发送消息
         self.debug_mode = True
         
     def start_server(self) -> bool:
@@ -106,6 +107,11 @@ class SocketServer(QObject):
     
     def _handle_client(self, client_socket: socket.socket, client_address):
         """处理客户端连接"""
+        client_id = f"{client_address[0]}:{client_address[1]}"
+        
+        # 存储客户端socket
+        self.client_sockets[client_id] = client_socket
+        
         try:
             with client_socket:
                 while self.is_running:
@@ -152,6 +158,10 @@ class SocketServer(QObject):
             if self.debug_mode:
                 print(f"[SOCKET] 处理客户端 {client_address} 时出错: {e}")
         finally:
+            # 清理客户端socket
+            if client_id in self.client_sockets:
+                del self.client_sockets[client_id]
+            
             self._emit_client_disconnected(f"{client_address[0]}:{client_address[1]}")
     
     def _emit_status(self, message: str):
@@ -178,8 +188,63 @@ class SocketServer(QObject):
             'running': self.is_running,
             'host': self.host,
             'port': self.port,
-            'active_threads': len([t for t in self.client_threads if t.is_alive()])
+            'active_threads': len([t for t in self.client_threads if t.is_alive()]),
+            'connected_clients': len(self.client_sockets)
         }
+    
+    def send_message_to_client(self, client_id: str, message: Dict[str, Any]) -> bool:
+        """向特定客户端发送消息"""
+        if client_id not in self.client_sockets:
+            if self.debug_mode:
+                print(f"[SOCKET] 客户端 {client_id} 未连接")
+            return False
+        
+        try:
+            client_socket = self.client_sockets[client_id]
+            json_message = json.dumps(message)
+            client_socket.sendall(json_message.encode('utf-8'))
+            
+            if self.debug_mode:
+                print(f"[SOCKET] 已向 {client_id} 发送消息: {json_message}")
+            return True
+            
+        except Exception as e:
+            if self.debug_mode:
+                print(f"[SOCKET] 向 {client_id} 发送消息失败: {e}")
+            # 移除断开的客户端
+            if client_id in self.client_sockets:
+                del self.client_sockets[client_id]
+            return False
+    
+    def broadcast_message(self, message: Dict[str, Any]) -> int:
+        """向所有客户端广播消息"""
+        success_count = 0
+        disconnected_clients = []
+        
+        for client_id, client_socket in self.client_sockets.items():
+            try:
+                json_message = json.dumps(message)
+                client_socket.sendall(json_message.encode('utf-8'))
+                success_count += 1
+                
+                if self.debug_mode:
+                    print(f"[SOCKET] 已向 {client_id} 广播消息: {json_message}")
+                    
+            except Exception as e:
+                if self.debug_mode:
+                    print(f"[SOCKET] 向 {client_id} 广播消息失败: {e}")
+                disconnected_clients.append(client_id)
+        
+        # 清理断开的客户端
+        for client_id in disconnected_clients:
+            if client_id in self.client_sockets:
+                del self.client_sockets[client_id]
+        
+        return success_count
+    
+    def get_connected_clients(self) -> list:
+        """获取已连接客户端列表"""
+        return list(self.client_sockets.keys())
 
 
 class GestureHandler(QObject):
