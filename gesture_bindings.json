@@ -2,21 +2,21 @@
   "FingerCountOne": {
     "action_type": "system_function",
     "action": "volume_up",
-    "description": "音量增加",
+    "description": "你好",
     "enabled": true,
     "gesture_type": "static"
   },
   "FingerCountTwo": {
     "action_type": "system_function",
-    "action": "volume_down",
-    "description": "音量减少",
+    "action": "volume_up",
+    "description": "",
     "enabled": true,
     "gesture_type": "static"
   },
   "FingerCountThree": {
     "action_type": "system_function",
-    "action": "play_pause",
-    "description": "播放/暂停",
+    "action": "volume_up",
+    "description": "",
     "enabled": true,
     "gesture_type": "static"
   },

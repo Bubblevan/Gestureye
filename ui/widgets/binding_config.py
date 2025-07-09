@@ -94,13 +94,23 @@ class GestureBindingDialog(QDialog):
             QListWidget::item {
                 padding: 8px;
                 border-bottom: 1px solid #e5e7eb;
+                color: #1f2937;
             }
             QListWidget::item:selected {
                 background: #2563eb;
                 color: white;
             }
+            QListWidget::item:selected:focus {
+                background: #1d4ed8;
+                color: white;
+            }
+            QListWidget::item:selected:!focus {
+                background: #e5e7eb;
+                color: #1f2937;
+            }
             QListWidget::item:hover {
                 background: #f1f5f9;
+                color: #1f2937;
             }
         """)
         gesture_layout.addWidget(self.gesture_list)
