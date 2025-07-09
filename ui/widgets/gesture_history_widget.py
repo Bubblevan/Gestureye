@@ -152,7 +152,7 @@ class GestureStatsWidget(QFrame):
         self.gesture_label = QLabel("暂无数据")
         self.gesture_label.setStyleSheet("color: #1e40af; font-size: 8px; line-height: 1.0;")
         self.gesture_label.setWordWrap(True)
-        self.gesture_label.setMaximumHeight(24)  # 进一步限制高度
+        self.gesture_label.setMaximumHeight(44)  # 进一步限制高度
         gesture_row.addWidget(title2)
         gesture_row.addWidget(self.gesture_label)
         layout.addLayout(gesture_row)

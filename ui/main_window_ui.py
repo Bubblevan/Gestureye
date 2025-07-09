@@ -3,10 +3,11 @@
 """
 
 import os
+import platform
 from PyQt6 import uic
 from PyQt6.QtWidgets import QMainWindow, QApplication
-from PyQt6.QtCore import pyqtSignal, QSettings, Qt, QTimer
-from PyQt6.QtGui import QKeySequence, QShortcut
+from PyQt6.QtCore import pyqtSignal, QSettings, Qt, QTimer, QSize
+from PyQt6.QtGui import QKeySequence, QShortcut, QIcon
 from .threads.socket_gesture_receiver import SocketGestureReceiverThread
 from .widgets.gesture_history_widget import GestureHistoryWidget
 from core.gesture_bindings import GestureBindings
@@ -26,6 +27,9 @@ class MainWindowUI(QMainWindow):
             uic.loadUi(UI_FILE, self)
         else:
             raise FileNotFoundError(f"UI文件不存在: {UI_FILE}")
+            
+        # 设置窗口图标
+        self.setup_window_icon()
             
         # 初始化设置
         self.settings = QSettings('GestureDetection', 'MainWindow')
@@ -65,6 +69,82 @@ class MainWindowUI(QMainWindow):
         
         # 添加手势历史标签页
         self.add_gesture_history_tab()
+    
+    def setup_window_icon(self):
+        """设置窗口图标（跨平台优化）"""
+        try:
+            # 获取当前操作系统
+            current_os = platform.system()
+            
+            # 获取项目根目录（相对于当前文件位置）
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            project_root = os.path.dirname(current_dir)  # 回到project目录
+            icon_path = os.path.join(project_root, "DDYN.png")
+            
+            if os.path.exists(icon_path):
+                icon = QIcon(icon_path)
+                
+                # 平台特定的图标尺寸优化
+                if current_os == "Windows":
+                    icon_sizes = [16, 24, 32, 48, 64, 128, 256]
+                elif current_os == "Darwin":  # macOS
+                    icon_sizes = [16, 32, 64, 128, 256, 512]
+                elif current_os == "Linux":
+                    icon_sizes = [16, 22, 24, 32, 48, 64, 96, 128, 256]
+                else:
+                    icon_sizes = [16, 24, 32, 48, 64, 128, 256]
+                
+                # 添加多种尺寸的图标以确保在不同场景下正确显示
+                for size in icon_sizes:
+                    icon.addFile(icon_path, QSize(size, size), QIcon.Mode.Normal, QIcon.State.Off)
+                
+                # 设置窗口图标
+                self.setWindowIcon(icon)
+                
+                # 同时设置应用程序图标（如果当前窗口是主窗口）
+                app = QApplication.instance()
+                if app:
+                    app.setWindowIcon(icon)
+                
+                # 强制刷新窗口以确保图标更新
+                self.update()
+                
+                print(f"窗口图标设置成功 ({current_os}): {icon_path}")
+                print(f"窗口图标尺寸: {icon_sizes}")
+            else:
+                print(f"警告: 图标文件不存在: {icon_path}")
+                # 尝试查找可能的图标路径
+                possible_paths = [
+                    os.path.join(project_root, "assets", "DDYN.png"),
+                    os.path.join(project_root, "images", "DDYN.png"),
+                    os.path.join(project_root, "resources", "DDYN.png"),
+                ]
+                
+                # 获取平台特定的图标尺寸
+                if current_os == "Windows":
+                    icon_sizes = [16, 24, 32, 48, 64, 128, 256]
+                elif current_os == "Darwin":
+                    icon_sizes = [16, 32, 64, 128, 256, 512]
+                elif current_os == "Linux":
+                    icon_sizes = [16, 22, 24, 32, 48, 64, 96, 128, 256]
+                else:
+                    icon_sizes = [16, 24, 32, 48, 64, 128, 256]
+                
+                for path in possible_paths:
+                    if os.path.exists(path):
+                        icon = QIcon(path)
+                        # 添加多种尺寸
+                        for size in icon_sizes:
+                            icon.addFile(path, QSize(size, size), QIcon.Mode.Normal, QIcon.State.Off)
+                        self.setWindowIcon(icon)
+                        app = QApplication.instance()
+                        if app:
+                            app.setWindowIcon(icon)
+                        print(f"在备用位置找到图标 ({current_os}): {path}")
+                        break
+                
+        except Exception as e:
+            print(f"设置窗口图标失败: {e}")
     
     def add_gesture_history_tab(self):
         """添加手势历史记录标签页"""
