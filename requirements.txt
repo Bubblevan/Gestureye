@@ -1,5 +1,5 @@
-# ���Ƽ����Ŀ����
+# 手势检测项目依赖
 PyQt6>=6.0.0
 pynput>=1.7.0
-# pywin32 ���� Windows ƽ̨��Ҫ������ƽ̨���Զ�����
+# pywin32 仅在 Windows 平台需要，其他平台将自动跳过
 pywin32; sys_platform == "win32"

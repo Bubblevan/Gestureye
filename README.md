@@ -7,12 +7,12 @@
 - Python 3.8+
 - 摄像头（用于手势识别）
 - 支持的操作系统：
-  - ✅ Windows 10/11
-  - ✅ macOS 10.14+  
-  - ✅ Linux (Ubuntu 18.04+, Fedora, Arch 等)
-
+    - ✅ Windows 10/11
+    - ✅ macOS 10.14+  
+    - ✅ Linux (Ubuntu 18.04+, Fedora, Arch 等)
 
 交互式安装脚本会自动：
+
 - 检测你的操作系统和可用包管理器
 - 推荐最适合的安装方式
 - 自动处理平台特定配置
@@ -37,6 +37,7 @@ python app.py
 ```
 
 **Conda 方式优势：**
+
 - ✅ 自动安装系统级音频库（Linux ALSA/PulseAudio）
 - ✅ 无需手动安装系统包
 - ✅ 环境隔离更好
@@ -63,6 +64,7 @@ python app.py
 ```
 
 **UV/pip 方式优势：**
+
 - ✅ 安装速度更快
 - ✅ 更轻量级
 - ✅ 现代化包管理
@@ -83,10 +85,12 @@ python app.py
 ## 🔧 平台特定配置
 
 ### Windows
+
 - `pywin32` 会自动安装，提供完整的窗口管理功能
 - 支持所有系统功能（音量、窗口控制、媒体键等）
 
 ### macOS
+
 - 某些功能需要授予辅助功能权限
 - 音量控制使用 AppleScript
 - 窗口管理使用系统快捷键
@@ -94,6 +98,7 @@ python app.py
 ### Linux
 
 #### Conda 用户（推荐）
+
 ```bash
 # 依赖已自动安装，直接使用
 conda activate gesture-control-system
@@ -101,6 +106,7 @@ python app.py
 ```
 
 #### UV/pip 用户
+
 ```bash
 # 安装系统音频工具（可选，增强体验）
 # Ubuntu/Debian:
@@ -133,12 +139,14 @@ pip install ".[linux]"
 ## 🚀 启动项目
 
 ### 启动 Socket 服务器
+
 ```bash
 cd project
 python app.py
 ```
 
 ### 启动手势识别客户端
+
 ```bash
 cd dyn_gestures  
 python main.py
@@ -149,12 +157,14 @@ python main.py
 ### 安装开发依赖
 
 **Conda:**
+
 ```bash
 conda activate gesture-control-system
 # 开发工具已包含在环境中
 ```
 
 **UV:**
+
 ```bash
 # 安装开发依赖
 uv add --dev pytest black flake8
@@ -163,6 +173,7 @@ uv sync --extra dev
 ```
 
 ### 代码格式化
+
 ```bash
 # 格式化代码
 black .
@@ -177,11 +188,13 @@ pytest
 ## 🔍 故障排除
 
 ### 通用问题
+
 - **权限错误**：某些功能可能需要管理员权限
 - **摄像头访问**：确保系统允许 Python 访问摄像头
 - **防火墙**：Socket 通信可能被防火墙阻止
 
 ### Windows
+
 ```bash
 # 如果遇到 pywin32 相关错误
 pip uninstall pywin32
@@ -189,10 +202,12 @@ pip install pywin32
 ```
 
 ### macOS
+
 - 首次运行需要在"系统偏好设置 > 安全性与隐私 > 辅助功能"中授权
 - 检查"系统偏好设置 > 安全性与隐私 > 自动化"权限
 
 ### Linux
+
 ```bash
 # 音量控制问题 - 尝试不同音频后端
 sudo apt install pulseaudio pulseaudio-utils  # PulseAudio
@@ -208,6 +223,7 @@ pip install python-xlib
 ## 📋 快速检查
 
 运行兼容性测试：
+
 ```bash
 python -c "
 import platform
@@ -227,9 +243,9 @@ except ImportError as e:
 ## 功能特点
 
 - **实时手势检测**: 使用摄像头进行实时手势识别
-- **多种手势支持**: 
-  - 静态手势: V字手势(胜利手势)、竖大拇指(点赞)、倒竖大拇指
-  - 动态手势: 握拳到张开手势
+- **多种手势支持**:
+    - 静态手势: V字手势(胜利手势)、竖大拇指(点赞)、倒竖大拇指
+    - 动态手势: 握拳到张开手势
 - **双手支持**: 同时检测和识别两只手的手势
 - **手势绑定系统**: 支持将手势绑定到快捷键和系统功能
 - **图形化界面**: 提供直观的PyQt界面进行配置和监控
@@ -280,6 +296,7 @@ dyn_gestures/
 
 1. 克隆或下载项目到本地
 2. 安装依赖包：
+
    ```bash
    uv sync
    ```
@@ -291,6 +308,7 @@ python app.py
 ```
 
 ### 或使用命令行版本
+
 ```bash
 uv run main.py
 ```
@@ -298,6 +316,7 @@ uv run main.py
 ## 使用说明
 
 ### 支持的手势
+
 - **✌️ V字手势**: 伸出食指和中指形成V字形（默认绑定：音量增加）
 - **👍 竖大拇指**: 竖起大拇指，其他手指握拳（默认绑定：音量减少）
 - **👎 倒竖大拇指**: 倒竖大拇指，其他手指握拳（默认绑定：静音）
@@ -309,6 +328,7 @@ uv run main.py
 - **⬇️ 下滑手势**: 手背到手心的下滑动作（默认绑定：向下翻页）
 
 ### 支持的动作类型
+
 - **键盘快捷键**: 如 Ctrl+C、Alt+Tab、F5 等
 - **系统功能**: 窗口最大化/最小化、音量控制、媒体播放控制等
 - **自定义功能**: 可扩展的自定义动作
@@ -325,10 +345,12 @@ uv run main.py
 ## 手势检测原理
 
 ### 静态手势
+
 - **V字手势**: 检测食指和中指是否伸直且分开，其他手指是否弯曲，拇指是否收起
 - **竖大拇指**: 检测大拇指是否朝上伸直，其他手指是否握拳贴近手掌
 
 ### 动态手势
+
 - **握拳张开**: 通过分析手指尖位置的方差变化来检测从握拳到张开的动作
 
 ## 扩展开发

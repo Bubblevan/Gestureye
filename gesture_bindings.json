@@ -1,72 +1,72 @@
 {
-  "FingerCountOne": {
-    "action_type": "system_function",
-    "action": "volume_up",
-    "description": "音量增加",
-    "enabled": true,
-    "gesture_type": "static"
-  },
-  "FingerCountTwo": {
-    "action_type": "system_function",
-    "action": "volume_down",
-    "description": "音量减少",
-    "enabled": true,
-    "gesture_type": "static"
-  },
-  "FingerCountThree": {
-    "action_type": "system_function",
-    "action": "play_pause",
-    "description": "播放/暂停",
-    "enabled": true,
-    "gesture_type": "static"
-  },
-  "ThumbsUp": {
-    "action_type": "system_function",
-    "action": "volume_mute",
-    "description": "静音",
-    "enabled": true,
-    "gesture_type": "static"
-  },
-  "ThumbsDown": {
-    "action_type": "system_function",
-    "action": "brightness_down",
-    "description": "亮度减少",
-    "enabled": true,
-    "gesture_type": "static"
-  },
-  "HandOpen": {
-    "action_type": "system_function",
-    "action": "window_maximize",
-    "description": "最大化窗口",
-    "enabled": true,
-    "gesture_type": "dynamic"
-  },
-  "HandClose": {
-    "action_type": "system_function",
-    "action": "window_minimize",
-    "description": "最小化窗口",
-    "enabled": true,
-    "gesture_type": "dynamic"
-  },
-  "HandSwipe": {
-    "action_type": "keyboard_shortcut",
-    "action": "alt+tab",
-    "description": "应用切换",
-    "enabled": true,
-    "gesture_type": "dynamic"
-  },
-  "HandFlip": {
-    "action_type": "keyboard_shortcut",
-    "action": "alt+f4",
-    "description": "关闭窗口",
-    "enabled": true,
-    "gesture_type": "dynamic"
-  },
-  "TwoFingerSwipe": {
-    "action_type": "keyboard_shortcut",
-    "action": "win+tab",
-    "description": "任务视图",
-    "enabled": true,
-    "gesture_type": "dynamic"
-  }
+    "FingerCountOne": {
+        "action_type": "system_function",
+        "action": "volume_up",
+        "description": "音量增加",
+        "enabled": true,
+        "gesture_type": "static"
+    },
+    "FingerCountTwo": {
+        "action_type": "system_function",
+        "action": "volume_down",
+        "description": "音量减少",
+        "enabled": true,
+        "gesture_type": "static"
+    },
+    "FingerCountThree": {
+        "action_type": "system_function",
+        "action": "play_pause",
+        "description": "播放/暂停",
+        "enabled": true,
+        "gesture_type": "static"
+    },
+    "ThumbsUp": {
+        "action_type": "system_function",
+        "action": "volume_mute",
+        "description": "静音",
+        "enabled": true,
+        "gesture_type": "static"
+    },
+    "ThumbsDown": {
+        "action_type": "system_function",
+        "action": "brightness_down",
+        "description": "亮度减少",
+        "enabled": true,
+        "gesture_type": "static"
+    },
+    "HandOpen": {
+        "action_type": "system_function",
+        "action": "window_maximize",
+        "description": "最大化窗口",
+        "enabled": true,
+        "gesture_type": "dynamic"
+    },
+    "HandClose": {
+        "action_type": "system_function",
+        "action": "window_minimize",
+        "description": "最小化窗口",
+        "enabled": true,
+        "gesture_type": "dynamic"
+    },
+    "HandSwipe": {
+        "action_type": "keyboard_shortcut",
+        "action": "alt+tab",
+        "description": "应用切换",
+        "enabled": true,
+        "gesture_type": "dynamic"
+    },
+    "HandFlip": {
+        "action_type": "keyboard_shortcut",
+        "action": "alt+f4",
+        "description": "关闭窗口",
+        "enabled": true,
+        "gesture_type": "dynamic"
+    },
+    "TwoFingerSwipe": {
+        "action_type": "keyboard_shortcut",
+        "action": "win+tab",
+        "description": "任务视图",
+        "enabled": true,
+        "gesture_type": "dynamic"
+    }
 }

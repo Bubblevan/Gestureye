@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-UI×ª»»¹¤¾ß - ½«.uiÎÄ¼ş×ª»»ÎªPython´úÂë
+UIè½¬æ¢å·¥å…· - å°†.uiæ–‡ä»¶è½¬æ¢ä¸ºPythonä»£ç 
 """
 
 import os
@@ -8,93 +8,104 @@ import sys
 import subprocess
 from pathlib import Path
 
+
 def ui_to_py(ui_file, py_file=None, pyqt_version=6):
     """
-    ½«.uiÎÄ¼ş×ª»»ÎªPython´úÂë
-    
+    å°†.uiæ–‡ä»¶è½¬æ¢ä¸ºPythonä»£ç 
+
     Args:
-        ui_file: .uiÎÄ¼şÂ·¾¶
-        py_file: Êä³öµÄ.pyÎÄ¼şÂ·¾¶£¨¿ÉÑ¡£©
-        pyqt_version: PyQt°æ±¾£¨5»ò6£©
+        ui_file: .uiæ–‡ä»¶è·¯å¾„
+        py_file: è¾“å‡ºçš„.pyæ–‡ä»¶è·¯å¾„ï¼ˆå¯é€‰ï¼‰
+        pyqt_version: PyQtç‰ˆæœ¬ï¼ˆ5æˆ–6ï¼‰
     """
     ui_path = Path(ui_file)
-    
+
     if not ui_path.exists():
-        print(f"´íÎó: UIÎÄ¼ş²»´æÔÚ - {ui_file}")
+        print(f"é”™è¯¯: UIæ–‡ä»¶ä¸å­˜åœ¨ - {ui_file}")
         return False
-    
+
     if py_file is None:
-        py_file = ui_path.with_suffix('.py')
-    
+        py_file = ui_path.with_suffix(".py")
+
     py_path = Path(py_file)
-    
-    # Ñ¡ÔñÕıÈ·µÄ¹¤¾ß
+
+    # é€‰æ‹©æ­£ç¡®çš„å·¥å…·
     if pyqt_version == 6:
-        tool = 'pyuic6'
+        tool = "pyuic6"
     else:
-        tool = 'pyuic5'
-    
+        tool = "pyuic5"
+
     try:
-        # ÔËĞĞpyuic¹¤¾ß
-        cmd = [tool, '-x', str(ui_path), '-o', str(py_path)]
+        # è¿è¡Œpyuicå·¥å…·
+        cmd = [tool, "-x", str(ui_path), "-o", str(py_path)]
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        
-        print(f"? ³É¹¦×ª»»: {ui_file} -> {py_file}")
+
+        print(f"? æˆåŠŸè½¬æ¢: {ui_file} -> {py_file}")
         return True
-        
+
     except subprocess.CalledProcessError as e:
-        print(f"? ×ª»»Ê§°Ü: {e}")
-        print(f"´íÎóĞÅÏ¢: {e.stderr}")
+        print(f"? è½¬æ¢å¤±è´¥: {e}")
+        print(f"é”™è¯¯ä¿¡æ¯: {e.stderr}")
         return False
     except FileNotFoundError:
-        print(f"? ¹¤¾ß²»´æÔÚ: {tool}")
-        print("ÇëÈ·±£ÒÑ°²×°PyQt6²¢ÇÒpyuic6ÔÚPATHÖĞ")
+        print(f"? å·¥å…·ä¸å­˜åœ¨: {tool}")
+        print("è¯·ç¡®ä¿å·²å®‰è£…PyQt6å¹¶ä¸”pyuic6åœ¨PATHä¸­")
         return False
+
 
 def watch_ui_file(ui_file, py_file=None, pyqt_version=6):
     """
-    ¼à¿Ø.uiÎÄ¼ş±ä»¯²¢×Ô¶¯×ª»»
+    ç›‘æ§.uiæ–‡ä»¶å˜åŒ–å¹¶è‡ªåŠ¨è½¬æ¢
     """
     import time
-    
+
     ui_path = Path(ui_file)
     if not ui_path.exists():
-        print(f"´íÎó: UIÎÄ¼ş²»´æÔÚ - {ui_file}")
+        print(f"é”™è¯¯: UIæ–‡ä»¶ä¸å­˜åœ¨ - {ui_file}")
         return
-    
+
     last_modified = ui_path.stat().st_mtime
-    print(f"? ¼à¿ØÎÄ¼ş±ä»¯: {ui_file}")
-    print("°´Ctrl+CÍ£Ö¹¼à¿Ø")
-    
+    print(f"? ç›‘æ§æ–‡ä»¶å˜åŒ–: {ui_file}")
+    print("æŒ‰Ctrl+Cåœæ­¢ç›‘æ§")
+
     try:
         while True:
             current_modified = ui_path.stat().st_mtime
             if current_modified > last_modified:
-                print(f"? ¼ì²âµ½ÎÄ¼ş±ä»¯£¬ÕıÔÚ×ª»»...")
+                print(f"? æ£€æµ‹åˆ°æ–‡ä»¶å˜åŒ–ï¼Œæ­£åœ¨è½¬æ¢...")
                 if ui_to_py(ui_file, py_file, pyqt_version):
                     last_modified = current_modified
             time.sleep(1)
     except KeyboardInterrupt:
-        print("\n? Í£Ö¹¼à¿Ø")
+        print("\n? åœæ­¢ç›‘æ§")
+
 
 def main():
-    """Ö÷º¯Êı"""
+    """ä¸»å‡½æ•°"""
     import argparse
-    
-    parser = argparse.ArgumentParser(description="UIÎÄ¼ş×ª»»¹¤¾ß")
-    parser.add_argument("ui_file", help=".uiÎÄ¼şÂ·¾¶")
-    parser.add_argument("-o", "--output", help="Êä³öµÄ.pyÎÄ¼şÂ·¾¶")
-    parser.add_argument("-v", "--version", type=int, choices=[5, 6], default=6, 
-                       help="PyQt°æ±¾ (5»ò6£¬Ä¬ÈÏ6)")
-    parser.add_argument("-w", "--watch", action="store_true", 
-                       help="¼à¿ØÎÄ¼ş±ä»¯²¢×Ô¶¯×ª»»")
-    
+
+    parser = argparse.ArgumentParser(description="UIæ–‡ä»¶è½¬æ¢å·¥å…·")
+    parser.add_argument("ui_file", help=".uiæ–‡ä»¶è·¯å¾„")
+    parser.add_argument("-o", "--output", help="è¾“å‡ºçš„.pyæ–‡ä»¶è·¯å¾„")
+    parser.add_argument(
+        "-v",
+        "--version",
+        type=int,
+        choices=[5, 6],
+        default=6,
+        help="PyQtç‰ˆæœ¬ (5æˆ–6ï¼Œé»˜è®¤6)",
+    )
+    parser.add_argument(
+        "-w", "--watch", action="store_true", help="ç›‘æ§æ–‡ä»¶å˜åŒ–å¹¶è‡ªåŠ¨è½¬æ¢"
+    )
+
     args = parser.parse_args()
-    
+
     if args.watch:
         watch_ui_file(args.ui_file, args.output, args.version)
     else:
         ui_to_py(args.ui_file, args.output, args.version)
 
+
 if __name__ == "__main__":
-    main() 
+    main()
