@@ -1,3 +1,134 @@
+# 手势识别控制系统
+
+这是一个基于计算机视觉的手势识别系统，可以通过手势控制系统功能，支持 **Windows、macOS 和 Linux** 跨平台运行。
+
+## 系统要求
+
+- Python 3.8+
+- 摄像头（用于手势识别）
+- 支持的操作系统：
+  - ✅ Windows 10/11
+  - ✅ macOS 10.14+  
+  - ✅ Linux (Ubuntu 18.04+, Fedora, Arch 等)
+
+## 跨平台安装
+
+### 1. 克隆项目
+```bash
+git clone <项目地址>
+cd project
+```
+
+### 2. 安装依赖
+
+**所有平台通用：**
+```bash
+pip install -r requirements.txt
+```
+
+**或使用 uv（推荐）：**
+```bash
+uv sync
+```
+
+### 3. 平台特定配置
+
+#### Windows
+- `pywin32` 会自动安装，提供完整的窗口管理功能
+- 支持所有系统功能（音量、窗口控制、媒体键等）
+
+#### macOS
+- 某些功能需要授予辅助功能权限
+- 音量控制使用 AppleScript
+- 窗口管理使用系统快捷键
+
+#### Linux
+- 音量控制支持：`alsa-utils`、`pulseaudio-utils` 或 `pulseaudio-ctl`
+- 窗口管理（可选）：`wmctrl`
+
+**Ubuntu/Debian 安装额外工具：**
+```bash
+sudo apt install alsa-utils pulseaudio-utils wmctrl
+```
+
+**Fedora/RHEL 安装额外工具：**
+```bash
+sudo dnf install alsa-utils pulseaudio-utils wmctrl
+```
+
+**Arch Linux 安装额外工具：**
+```bash
+sudo pacman -S alsa-utils pulseaudio wmctrl
+```
+
+## 功能支持矩阵
+
+| 功能 | Windows | macOS | Linux |
+|------|---------|-------|-------|
+| 键盘快捷键 | ✅ | ✅ | ✅ |
+| 窗口最大化/最小化 | ✅ | ✅ | ✅* |
+| 窗口关闭 | ✅ | ✅ | ✅ |
+| 音量控制 | ✅ | ✅ | ✅* |
+| 媒体键 | ✅ | ✅ | ✅ |
+| 鼠标滚轮 | ✅ | ✅ | ✅ |
+| 窗口切换 | ✅ | ✅ | ✅ |
+
+*需要安装额外工具以获得最佳体验
+
+## 启动项目
+
+### 启动 Socket 服务器
+```bash
+cd project
+python app.py
+```
+
+### 启动手势识别客户端
+```bash
+cd dyn_gestures  
+python main.py
+```
+
+## 故障排除
+
+### Windows
+- 如果遇到 `pywin32` 相关错误，请重新安装：
+  ```bash
+  pip uninstall pywin32
+  pip install pywin32
+  ```
+
+### macOS
+- 首次运行可能需要在"系统偏好设置 > 安全性与隐私 > 辅助功能"中授权
+- 如果音量控制失败，检查"系统偏好设置 > 安全性与隐私 > 自动化"权限
+
+### Linux
+- 如果音量控制不工作，尝试安装不同的音频工具：
+  ```bash
+  # 尝试 PulseAudio
+  sudo apt install pulseaudio pulseaudio-utils
+  
+  # 或者 ALSA
+  sudo apt install alsa-utils
+  ```
+- 如果窗口管理功能受限，安装 `wmctrl`：
+  ```bash
+  sudo apt install wmctrl
+  ```
+
+### 通用问题
+- **权限错误**：某些功能可能需要管理员权限
+- **摄像头访问**：确保系统允许 Python 访问摄像头
+- **防火墙**：Socket 通信可能被防火墙阻止
+
+## 开发说明
+
+项目采用跨平台设计：
+- 核心功能使用 `pynput` 库实现跨平台兼容
+- Windows 特有功能通过 `pywin32` 增强（可选）
+- macOS 使用 AppleScript 进行系统集成
+- Linux 通过命令行工具和标准快捷键实现
+
 # CVZone 手势检测项目
 
 这是一个基于CVZone和MediaPipe的实时手势检测应用程序，使用模块化架构设计，支持多种静态和动态手势识别。
