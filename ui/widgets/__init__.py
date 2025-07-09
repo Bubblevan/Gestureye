@@ -1,7 +1,15 @@
 """
-UI组件模块 - 包含所有自定义UI组件
+UI组件包
 """
 
-from .binding_config import GestureBindingDialog
+from .gesture_history_widget import (
+    GestureHistoryWidget,
+    GestureHistoryItem,
+    GestureStatsWidget
+)
 
-__all__ = ['GestureBindingDialog'] 
+__all__ = [
+    'GestureHistoryWidget',
+    'GestureHistoryItem', 
+    'GestureStatsWidget'
+] 

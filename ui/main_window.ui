@@ -408,44 +408,20 @@ QScrollBar::sub-line:vertical {
                   <string>支持的手势：
 
 • 拇指向上 - 音量增加
-  将拇指向上竖起，保持1秒
-  
-• 拇指向下 - 音量减小
-  将拇指向下，保持1秒
-  
+• 拇指向下 - 音量减小  
 • V字手势 - 播放/暂停
-  食指和中指伸出做V字手势
-  
 • OK手势 - 静音
-  拇指和食指做圆圈手势
-  
 • 捏合手势 - 上一首
-  拇指和食指做捏的动作
-  
 • 挥手手势 - 下一首
-  张开手掌左右摆动
 
 动态手势：
 • 向左滑动 - 回退操作
 • 向右滑动 - 前进操作
-• 向上滑动 - 向上滚动
-• 向下滑动 - 向下滚动
 
 使用技巧：
 • 确保手势在摄像头范围内
 • 保持手势1-2秒以确保识别
 • 良好的光线条件有助于识别
-• 避免快速移动以免误识别
-
-调试模式：
-• 启用后可查看实时摄像头画面
-• 查看手势识别的详细信息
-• 调整手势动作以获得最佳效果
-
-注意事项：
-• 首次使用请允许摄像头权限
-• 建议在稳定的环境中使用
-• 如遇识别问题可重启检测
 
 启动检测后即可使用所有手势功能</string>
                  </property>
@@ -499,15 +475,11 @@ QScrollBar::sub-line:vertical {
 开发者模式：
 • 显示摄像头实时预览
 • 查看详细检测信息
-• 调试手势识别算法
 
 快捷键：
 • F12 - 切换开发者模式
 • Ctrl+S - 开始检测
-• Ctrl+T - 停止检测
-
-日志保存位置：
-./logs/gesture_detection.log</string>
+• Ctrl+T - 停止检测</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignTop</set>
@@ -603,7 +575,7 @@ QScrollBar::sub-line:vertical {
           <item>
            <widget class="QLabel" name="welcomeTitle">
             <property name="text">
-             <string>欢迎使用手势检测控制中心</string>
+             <string>手势检测控制中心 - Socket服务器</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -623,7 +595,7 @@ QScrollBar::sub-line:vertical {
           <item>
            <widget class="QLabel" name="welcomeSubtitle">
             <property name="text">
-             <string>通过手势控制您的计算机</string>
+             <string>接收dyn_gestures项目发送的手势数据</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -642,10 +614,10 @@ QScrollBar::sub-line:vertical {
           <item>
            <widget class="QLabel" name="instructionLabel">
             <property name="text">
-             <string>点击左侧"开始检测"按钮开始使用
+             <string>点击左侧"启动Socket服务器"按钮开始接收手势数据
 
-确保您的摄像头正常工作
-在良好的光线条件下效果更佳
+本应用只接收数据，不调用摄像头
+需要先启动dyn_gestures项目进行手势识别
 开发者可启用调试模式查看详细信息</string>
             </property>
             <property name="alignment">

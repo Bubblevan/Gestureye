@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import QMainWindow, QApplication
 from PyQt6.QtCore import pyqtSignal, QSettings, Qt, QTimer
 from PyQt6.QtGui import QKeySequence, QShortcut
 from .threads.socket_gesture_receiver import SocketGestureReceiverThread
+from .widgets.gesture_history_widget import GestureHistoryWidget
 from core.gesture_bindings import GestureBindings
 from core.action_executor import ActionExecutor
 
@@ -41,6 +42,10 @@ class MainWindowUI(QMainWindow):
         self.action_executor = ActionExecutor()
         self.detection_thread = None
         
+        # 初始化手势历史记录组件
+        self.gesture_history_widget = GestureHistoryWidget()
+        self.gesture_history_widget.clear_history_requested.connect(self.clear_gesture_history)
+        
         # 连接信号和槽
         self.setup_connections()
         
@@ -58,6 +63,43 @@ class MainWindowUI(QMainWindow):
         self.layout_timer.timeout.connect(self.update_responsive_layout)
         self.layout_timer.setSingleShot(True)
         
+        # 添加手势历史标签页
+        self.add_gesture_history_tab()
+    
+    def add_gesture_history_tab(self):
+        """添加手势历史记录标签页"""
+        try:
+            # 在标签页中添加手势历史组件
+            self.tabWidget.addTab(self.gesture_history_widget, "🕒 手势历史")
+            
+            # 设置标签页图标样式
+            tab_count = self.tabWidget.count()
+            self.tabWidget.setTabToolTip(tab_count - 1, "查看手势识别历史记录和统计信息")
+            
+        except Exception as e:
+            self.log_message(f"添加手势历史标签页失败: {e}")
+    
+    def clear_gesture_history(self):
+        """清空手势历史记录"""
+        try:
+            from PyQt6.QtWidgets import QMessageBox
+            
+            reply = QMessageBox.question(
+                self,
+                "清空手势历史",
+                "确定要清空所有手势历史记录吗？\n\n此操作不可撤销！",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+            
+            if reply == QMessageBox.StandardButton.Yes:
+                self.gesture_history_widget.clear_history()
+                self.log_message("手势历史记录已清空")
+            else:
+                self.log_message("清空手势历史记录已取消")
+                
+        except Exception as e:
+            self.log_message(f"清空手势历史记录失败: {e}")
 
     
     def setup_connections(self):
@@ -112,12 +154,18 @@ class MainWindowUI(QMainWindow):
     def init_ui_state(self):
         """初始化UI状态"""
         self.stopBtn.setEnabled(False)
-        self.statusLabel.setText("状态: 未启动")
-        self.gestureLabel.setText("最近手势: 无")
+        self.statusLabel.setText("状态: Socket服务器未启动")
+        self.gestureLabel.setText("最近手势: 等待dyn_gestures连接")
         
-        # 设置窗口属性
-        self.setWindowTitle("手势检测控制中心")
+        # 设置窗口属性和按钮文本
+        self.setWindowTitle("手势检测控制中心 - Socket服务器")
         self.setMinimumSize(400, 600)
+        
+        # 更新按钮文本使其更明确
+        self.startBtn.setText("🔌 启动Socket服务器")
+        self.stopBtn.setText("⏹️ 停止Socket服务器")
+        self.startBtn.setToolTip("启动Socket服务器，等待dyn_gestures项目连接并发送手势数据")
+        self.stopBtn.setToolTip("停止Socket服务器，断开与dyn_gestures项目的连接")
         
         # 强制初始状态：紧凑模式
         self.expanded_view = False
@@ -141,8 +189,8 @@ class MainWindowUI(QMainWindow):
             self.is_detecting = True
             self.startBtn.setEnabled(False)
             self.stopBtn.setEnabled(True)
-            self.statusLabel.setText("状态: 运行中")
-            self.log_message("手势检测Socket监听已启动")
+            self.statusLabel.setText("状态: Socket服务器运行中")
+            self.log_message("Socket服务器已启动，等待dyn_gestures连接...")
             
             # 更新状态样式
             self.statusLabel.setStyleSheet(self.statusLabel.styleSheet() + 
@@ -156,18 +204,26 @@ class MainWindowUI(QMainWindow):
             self.is_detecting = False
             self.startBtn.setEnabled(True)
             self.stopBtn.setEnabled(False)
-            self.statusLabel.setText("状态: 已停止")
+            
+            # 显示统计信息
+            history_count = self.gesture_history_widget.get_history_count()
+            self.statusLabel.setText(f"状态: 已停止 (共识别 {history_count} 个手势)")
             self.gestureLabel.setText("最近手势: 无")
-            self.log_message("手势检测Socket监听已停止")
+            self.log_message(f"手势检测Socket监听已停止，本次会话共识别 {history_count} 个手势")
             
             # 恢复状态样式
             self.statusLabel.setStyleSheet(self.statusLabel.styleSheet().replace(
                 "color: #047857; background: #d1fae5; border: 1px solid #a7f3d0;", ""))
+            self.gestureLabel.setStyleSheet(self.gestureLabel.styleSheet().replace(
+                "color: #047857; background: #d1fae5; border: 1px solid #a7f3d0;", ""))
     
     def on_gesture_detected(self, gesture_name: str, hand_type: str, confidence: float):
         """手势检测回调"""
-        # 更新手势显示
-        gesture_text = f"最近手势: {hand_type}手-{gesture_name} ({confidence:.0f}%)"
+        # 更新手势显示 - 添加更多信息
+        hand_icon = "🫱" if hand_type.lower() == "right" else "🫲" if hand_type.lower() == "left" else "👋"
+        confidence_icon = "🟢" if confidence >= 80 else "🟡" if confidence >= 60 else "🔴"
+        
+        gesture_text = f"🤚 {gesture_name} | {hand_icon}{hand_type.title()} | {confidence_icon}{confidence:.0f}%"
         self.gestureLabel.setText(gesture_text)
         
         # 高亮显示手势标签
@@ -532,6 +588,9 @@ class MainWindowUI(QMainWindow):
             gesture_type = gesture_data.get('gesture_type', 'static')
             details = gesture_data.get('details', {})
             timestamp = gesture_data.get('timestamp', 0)
+            
+            # 添加到手势历史记录
+            self.gesture_history_widget.add_gesture(gesture_data)
             
             # 记录详细的手势信息到日志
             if self.debug_mode:
