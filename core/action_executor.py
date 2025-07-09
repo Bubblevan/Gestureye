@@ -28,6 +28,18 @@ if CURRENT_OS == "Windows":
 else:
     HAS_WIN32 = False
 
+# Linux上导入X11支持
+if CURRENT_OS == "Linux":
+    try:
+        from Xlib import display
+        from Xlib.ext import xtest
+        HAS_XLIB = True
+    except ImportError:
+        HAS_XLIB = False
+        print("提示: 未安装python-xlib，某些Linux窗口管理功能将受限")
+else:
+    HAS_XLIB = False
+
 class ActionExecutor:
     """跨平台动作执行器"""
     

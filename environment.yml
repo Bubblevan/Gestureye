@@ -1,0 +1,39 @@
+name: gesture-control-system
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  # Python 环境
+  - python>=3.8
+  
+  # 核心 Python 依赖
+  - pip
+  
+  # GUI 框架
+  - pyqt6>=6.0.0
+  
+  # 跨平台输入控制
+  - pynput>=1.7.0
+  
+  # 系统级音频支持 (跨平台)
+  - alsa-lib        # Linux ALSA 支持
+  - pulseaudio      # Linux PulseAudio 支持
+  - portaudio       # 跨平台音频 I/O 库
+  
+  # 开发工具
+  - setuptools
+  - wheel
+  - packaging
+  
+  # 通过 pip 安装的包
+  - pip:
+    # Windows 特定依赖
+    - pywin32; sys_platform == "win32"
+    
+    # Linux 窗口管理工具 (如果 conda 没有，通过 pip 安装替代方案)
+    - python-xlib; sys_platform == "linux"  # X11 窗口操作的 Python 绑定
+
+# 安装后可能需要的系统包 (如果 conda 包不够用):
+# Linux: sudo apt install wmctrl (窗口管理)
+# macOS: 无需额外包 (系统内置)
+# Windows: 无需额外包 (通过 pywin32) 

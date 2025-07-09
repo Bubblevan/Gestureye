@@ -504,30 +504,6 @@ QScrollBar::sub-line:vertical {
          </widget>
         </widget>
        </item>
-       <item>
-        <widget class="QTextEdit" name="logTextEdit">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>100</height>
-          </size>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QTextEdit {
-    font-size: 11px;
-    background: #1f2937;
-    color: #f9fafb;
-    border: 1px solid #374151;
-    border-radius: 4px;
-    padding: 6px;
-    font-family: 'Consolas', 'Monaco', monospace;
-}</string>
-         </property>
-        </widget>
-       </item>
       </layout>
      </widget>
     </item>

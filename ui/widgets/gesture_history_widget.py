@@ -23,13 +23,15 @@ class GestureHistoryItem(QFrame):
     def setup_ui(self):
         """设置UI"""
         self.setFrameShape(QFrame.Shape.Box)
+        self.setMinimumHeight(100)  # 确保每个项目有足够的高度
+        self.setMaximumHeight(140)  # 限制最大高度，保持紧凑
         self.setStyleSheet("""
             QFrame {
                 background: white;
                 border: 1px solid #e5e7eb;
                 border-radius: 6px;
-                padding: 6px;
-                margin: 1px;
+                padding: 8px;
+                margin: 2px;
             }
             QFrame:hover {
                 background: #f8fafc;
@@ -38,8 +40,8 @@ class GestureHistoryItem(QFrame):
         """)
         
         layout = QVBoxLayout(self)
-        layout.setSpacing(3)
-        layout.setContentsMargins(6, 4, 6, 4)
+        layout.setSpacing(4)
+        layout.setContentsMargins(8, 6, 8, 6)
         
         # 提取数据
         gesture_name = self.gesture_data.get('gesture', 'Unknown')
@@ -55,41 +57,44 @@ class GestureHistoryItem(QFrame):
         # 主要信息行
         main_layout = QHBoxLayout()
         
-        # 手势名称和类型
-        gesture_label = QLabel(f"🤚 {gesture_name}")
-        gesture_label.setStyleSheet("font-weight: bold; color: #1f2937; font-size: 13px;")
+        # 手势名称（截断过长的名称）
+        display_name = gesture_name[:12] + "..." if len(gesture_name) > 12 else gesture_name
+        gesture_label = QLabel(f"🤚 {display_name}")
+        gesture_label.setStyleSheet("font-weight: bold; color: #1f2937; font-size: 12px;")
         main_layout.addWidget(gesture_label)
         
         main_layout.addStretch()
         
         # 时间
         time_label = QLabel(time_str)
-        time_label.setStyleSheet("color: #6b7280; font-size: 11px;")
+        time_label.setStyleSheet("color: #6b7280; font-size: 10px;")
         main_layout.addWidget(time_label)
         
         layout.addLayout(main_layout)
         
-        # 详细信息行
+        # 详细信息行（紧凑显示）
         detail_layout = QHBoxLayout()
         
-        # 手部类型
+        # 手部类型（简化显示）
         hand_icon = "🫱" if hand_type.lower() == "right" else "🫲" if hand_type.lower() == "left" else "👋"
-        hand_label = QLabel(f"{hand_icon} {hand_type.title()}")
-        hand_label.setStyleSheet("color: #4b5563; font-size: 11px;")
+        hand_short = "右" if hand_type.lower() == "right" else "左" if hand_type.lower() == "left" else "?"
+        hand_label = QLabel(f"{hand_icon}{hand_short}")
+        hand_label.setStyleSheet("color: #4b5563; font-size: 10px;")
         detail_layout.addWidget(hand_label)
         
-        # 手势类型
+        # 手势类型（简化显示）
         type_icon = "📌" if gesture_type == "static" else "🔄"
-        type_label = QLabel(f"{type_icon} {gesture_type.title()}")
-        type_label.setStyleSheet("color: #4b5563; font-size: 11px;")
+        type_short = "静" if gesture_type == "static" else "动"
+        type_label = QLabel(f"{type_icon}{type_short}")
+        type_label.setStyleSheet("color: #4b5563; font-size: 10px;")
         detail_layout.addWidget(type_label)
         
         detail_layout.addStretch()
         
-        # 置信度
+        # 置信度（紧凑显示）
         confidence_color = "#10b981" if confidence >= 80 else "#f59e0b" if confidence >= 60 else "#ef4444"
-        confidence_label = QLabel(f"📊 {confidence:.0f}%")
-        confidence_label.setStyleSheet(f"color: {confidence_color}; font-size: 11px; font-weight: 600;")
+        confidence_label = QLabel(f"{confidence:.0f}%")
+        confidence_label.setStyleSheet(f"color: {confidence_color}; font-size: 10px; font-weight: 600;")
         detail_layout.addWidget(confidence_label)
         
         layout.addLayout(detail_layout)
@@ -124,43 +129,45 @@ class GestureStatsWidget(QFrame):
             }
         """)
         
-        layout = QHBoxLayout(self)  # 改为水平布局
-        layout.setSpacing(8)
+        # 主布局改为垂直布局，适合紧凑视图
+        layout = QVBoxLayout(self)
+        layout.setSpacing(6)
         
-        # 左侧：总计信息
-        total_container = QVBoxLayout()
+        # 第一行：总计信息（始终显示）
+        total_row = QHBoxLayout()
         title1 = QLabel("📊 总计")
-        title1.setStyleSheet("font-weight: bold; color: #0369a1; font-size: 12px; margin-bottom: 2px;")
+        title1.setStyleSheet("font-weight: bold; color: #0369a1; font-size: 12px;")
         self.total_label = QLabel("0")
         self.total_label.setStyleSheet("color: #1e40af; font-size: 16px; font-weight: bold;")
-        total_container.addWidget(title1)
-        total_container.addWidget(self.total_label)
-        total_container.addStretch()
-        layout.addLayout(total_container)
+        total_row.addWidget(title1)
+        total_row.addStretch()
+        total_row.addWidget(self.total_label)
+        layout.addLayout(total_row)
         
-        # 中间：手势排行
-        gesture_container = QVBoxLayout()
+        # 第二行：手势排行（紧凑显示）
+        gesture_row = QVBoxLayout()
+        gesture_row.setSpacing(1)
         title2 = QLabel("🏆 手势排行")
-        title2.setStyleSheet("font-weight: bold; color: #0369a1; font-size: 12px; margin-bottom: 2px;")
+        title2.setStyleSheet("font-weight: bold; color: #0369a1; font-size: 10px; margin-bottom: 1px;")
         self.gesture_label = QLabel("暂无数据")
-        self.gesture_label.setStyleSheet("color: #1e40af; font-size: 10px; line-height: 1.2;")
+        self.gesture_label.setStyleSheet("color: #1e40af; font-size: 8px; line-height: 1.0;")
         self.gesture_label.setWordWrap(True)
-        gesture_container.addWidget(title2)
-        gesture_container.addWidget(self.gesture_label)
-        gesture_container.addStretch()
-        layout.addLayout(gesture_container, 1)
+        self.gesture_label.setMaximumHeight(24)  # 进一步限制高度
+        gesture_row.addWidget(title2)
+        gesture_row.addWidget(self.gesture_label)
+        layout.addLayout(gesture_row)
         
-        # 右侧：类型分布
-        type_container = QVBoxLayout()
-        title3 = QLabel("📈 类型分布")
-        title3.setStyleSheet("font-weight: bold; color: #0369a1; font-size: 12px; margin-bottom: 2px;")
+        # 第三行：类型分布（紧凑显示）
+        type_row = QHBoxLayout()
+        title3 = QLabel("📈 类型")
+        title3.setStyleSheet("font-weight: bold; color: #0369a1; font-size: 11px;")
         self.type_label = QLabel("无分布")
-        self.type_label.setStyleSheet("color: #1e40af; font-size: 10px; line-height: 1.2;")
+        self.type_label.setStyleSheet("color: #1e40af; font-size: 9px; line-height: 1.1;")
         self.type_label.setWordWrap(True)
-        type_container.addWidget(title3)
-        type_container.addWidget(self.type_label)
-        type_container.addStretch()
-        layout.addLayout(type_container)
+        type_row.addWidget(title3)
+        type_row.addStretch()
+        type_row.addWidget(self.type_label)
+        layout.addLayout(type_row)
     
     def update_stats(self, gesture_history: List[Dict[str, Any]]):
         """更新统计信息"""
@@ -193,26 +200,31 @@ class GestureStatsWidget(QFrame):
         # 更新总计
         self.total_label.setText(str(total))
         
-        # 更新手势排行（只显示前3个）
+        # 更新手势排行（紧凑显示前2个）
         if gesture_counts:
             gesture_text = ""
             sorted_gestures = sorted(gesture_counts.items(), key=lambda x: x[1], reverse=True)
-            for i, (gesture, count) in enumerate(sorted_gestures[:3]):
+            for i, (gesture, count) in enumerate(sorted_gestures[:2]):
                 percentage = (count / total * 100) if total > 0 else 0
-                gesture_text += f"{i+1}. {gesture}: {count}({percentage:.0f}%)\n"
+                # 简化显示格式
+                gesture_name = gesture[:8] + "..." if len(gesture) > 8 else gesture
+                gesture_text += f"{i+1}.{gesture_name}: {count}\n"
             self.gesture_label.setText(gesture_text.strip())
         else:
             self.gesture_label.setText("暂无数据")
             
-        # 更新类型分布
+        # 更新类型分布（紧凑显示）
         if type_counts:
-            type_text = ""
-            for gtype, count in type_counts.items():
-                if count > 0:
-                    percentage = (count / total * 100) if total > 0 else 0
-                    icon = "📌" if gtype == "static" else "🔄"
-                    type_text += f"{icon} {gtype}: {count}({percentage:.0f}%)\n"
-            self.type_label.setText(type_text.strip())
+            static_count = type_counts.get("static", 0)
+            dynamic_count = type_counts.get("dynamic", 0)
+            if static_count > 0 and dynamic_count > 0:
+                self.type_label.setText(f"📌{static_count} 🔄{dynamic_count}")
+            elif static_count > 0:
+                self.type_label.setText(f"📌静态: {static_count}")
+            elif dynamic_count > 0:
+                self.type_label.setText(f"🔄动态: {dynamic_count}")
+            else:
+                self.type_label.setText("无分布")
         else:
             self.type_label.setText("无分布")
 
@@ -235,8 +247,11 @@ class GestureHistoryWidget(QWidget):
     
     def setup_ui(self):
         """设置UI"""
+        # 设置组件的最小高度，确保有足够空间显示记录
+        self.setMinimumHeight(400)
+        
         layout = QVBoxLayout(self)
-        layout.setSpacing(6)
+        layout.setSpacing(4)
         layout.setContentsMargins(4, 4, 4, 4)
         
         # 标题和控制区域
@@ -273,7 +288,8 @@ class GestureHistoryWidget(QWidget):
         
         # 上方：统计信息（紧凑显示）
         self.stats_widget = GestureStatsWidget()
-        self.stats_widget.setMaximumHeight(120)  # 限制高度
+        self.stats_widget.setMaximumHeight(90)  # 更进一步限制高度
+        self.stats_widget.setMinimumHeight(65)  # 设置最小高度
         content_layout.addWidget(self.stats_widget)
         
         # 下方：历史记录列表
@@ -283,35 +299,65 @@ class GestureHistoryWidget(QWidget):
                 font-weight: bold;
                 border: 2px solid #e5e7eb;
                 border-radius: 6px;
-                margin-top: 8px;
-                padding-top: 6px;
+                margin-top: 4px;
+                padding-top: 4px;
             }
             QGroupBox::title {
                 subcontrol-origin: margin;
                 left: 8px;
-                padding: 0 6px 0 6px;
+                padding: 0 4px 0 4px;
                 color: #374151;
+                font-size: 11px;
             }
         """)
         
         history_layout = QVBoxLayout(history_group)
-        history_layout.setSpacing(4)
+        history_layout.setSpacing(2)
+        history_layout.setContentsMargins(4, 8, 4, 4)
         
-        # 滚动区域
+        # 滚动区域 - 确保有足够的高度
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.scroll_area.setMinimumHeight(150)  # 调整最小高度
+        self.scroll_area.setSizePolicy(
+            self.scroll_area.sizePolicy().horizontalPolicy(),
+            self.scroll_area.sizePolicy().expandingPolicy()
+        )
         self.scroll_area.setStyleSheet("""
             QScrollArea {
-                border: none;
+                border: 1px solid #e5e7eb;
+                border-radius: 4px;
                 background: #f9fafb;
+            }
+            QScrollBar:vertical {
+                border: none;
+                background: #f1f5f9;
+                width: 6px;
+                border-radius: 3px;
+            }
+            QScrollBar::handle:vertical {
+                background: #cbd5e1;
+                min-height: 20px;
+                border-radius: 3px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #94a3b8;
+            }
+            QScrollBar::add-line:vertical,
+            QScrollBar::sub-line:vertical {
+                border: none;
+                background: none;
+                height: 0px;
             }
         """)
         
         # 历史记录容器
         self.history_container = QWidget()
         self.history_layout = QVBoxLayout(self.history_container)
-        self.history_layout.setSpacing(3)
+        self.history_layout.setSpacing(4)  # 增加间距，确保记录项不会挤压
+        self.history_layout.setContentsMargins(4, 4, 4, 4)
         self.history_layout.addStretch()
         
         self.scroll_area.setWidget(self.history_container)
