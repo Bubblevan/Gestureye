@@ -109,6 +109,7 @@ try:
     import pynput
     import pynput.keyboard
     import pynput.mouse
+
     HAS_PYNPUT = True
     # 注意：不直接导入类以避免名称冲突
 except ImportError:
@@ -424,7 +425,7 @@ class MacActionExecutor:
         print("切换全屏状态...")
         script = """
         tell application "System Events"
-            key code 0 using {command down, control down}
+            key "Z" using {command down, control down}
         end tell
         """
         try:
@@ -443,40 +444,25 @@ class MacActionExecutor:
         # 使用AppleScript模拟点击缩放按钮
         script = """
         tell application "System Events"
-            set frontApp to first application process whose frontmost is true
-            tell frontApp
-                tell window 1
-                    set {xPosition, yPosition} to position
-                    set {xSize, ySize} to size
-                    -- 尝试使用"缩放"选项（模拟点击绿色按钮的选项菜单）
-                    click button 3 of window 1
-                end tell
-            end tell
+            key "A" using {command down, control down}
         end tell
         """
-
         try:
-            # 或者使用快捷键 - 很多应用支持Cmd+Option+A作为最大化
-            return self._execute_keyboard_shortcut("cmd+option+A")
+            script_obj = applescript.AppleScript(script)
+            result = script_obj.run()
+            print(f"AppleScript 结果: {result}")
+            return True
         except Exception as e:
             print(f"最大化窗口失败: {e}")
-            # 回退到标准全屏
-            return self._toggle_fullscreen()
+            return False
 
     def _minimize_active_window(self) -> bool:
         """最小化当前活动窗口"""
         print("最小化当前窗口...")
         script = """
-        try
-            tell application (path to frontmost application as text)
-                if (count of windows) > 0 then
-                    set miniaturized of window 1 to true
-                end if
-            end tell
-        on error
-            -- Fallback to hotkey if direct manipulation fails
-            tell application "System Events" to key code 4 using {command down}
-        end try
+        tell application "System Events"
+            key "M" using {command down}
+        end tell
         """
         try:
             script_obj = applescript.AppleScript(script)
@@ -485,8 +471,7 @@ class MacActionExecutor:
             return True
         except applescript.ScriptError as e:
             print(f"最小化窗口失败: {e}")
-            # 回退到标准快捷键
-            return self._execute_keyboard_shortcut("cmd+m")
+            return False
 
     def _restore_active_window(self) -> bool:
         """恢复当前活动窗口"""
@@ -633,50 +618,17 @@ class MacActionExecutor:
     def _play_pause(self) -> bool:
         """播放/暂停"""
         print("播放/暂停...")
-        # 使用AppleScript控制播放
-        script = """
-        tell application "System Events" to key code 16 using {command down, option down} -- P key
-        """
-        try:
-            script_obj = applescript.AppleScript(script)
-            script_obj.run()
-            return True
-        except applescript.ScriptError as e:
-            print(f"播放/暂停失败: {e}")
-            # 回退到媒体键
-            return self._execute_keyboard_shortcut("fn+f8")
+        return self._execute_keyboard_shortcut("fn+f8")
 
     def _next_track(self) -> bool:
         """下一曲"""
         print("下一曲...")
-        # 使用AppleScript控制下一曲
-        script = """
-        tell application "System Events" to key code 17 using {command down, option down} -- ] key
-        """
-        try:
-            script_obj = applescript.AppleScript(script)
-            script_obj.run()
-            return True
-        except applescript.ScriptError as e:
-            print(f"下一曲失败: {e}")
-            # 回退到媒体键
-            return self._execute_keyboard_shortcut("fn+f9")
+        return self._execute_keyboard_shortcut("fn+f9")
 
     def _prev_track(self) -> bool:
         """上一曲"""
         print("上一曲...")
-        # 使用AppleScript控制上一曲
-        script = """
-        tell application "System Events" to key code 18 using {command down, option down} -- [ key
-        """
-        try:
-            script_obj = applescript.AppleScript(script)
-            script_obj.run()
-            return True
-        except applescript.ScriptError as e:
-            print(f"上一曲失败: {e}")
-            # 回退到媒体键
-            return self._execute_keyboard_shortcut("fn+f7")
+        return self._execute_keyboard_shortcut("fn+f7")
 
     def _window_drag(self) -> bool:
         """窗口拖拽"""
@@ -771,12 +723,12 @@ ActionExecutor = MacActionExecutor
 
 # 导出所有公共类和函数
 __all__ = [
-    'ActionExecutor',
-    'MacActionExecutor',
-    'Key',
-    'Button',
-    'KeyboardController',
-    'MouseController'
+    "ActionExecutor",
+    "MacActionExecutor",
+    "Key",
+    "Button",
+    "KeyboardController",
+    "MouseController",
 ]
 
 
