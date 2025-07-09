@@ -11,15 +11,6 @@
   - ✅ macOS 10.14+  
   - ✅ Linux (Ubuntu 18.04+, Fedora, Arch 等)
 
-## 🚀 快速安装
-
-### 🎯 一键安装（推荐新手）
-
-```bash
-git clone <项目地址>
-cd project
-python install.py
-```
 
 交互式安装脚本会自动：
 - 检测你的操作系统和可用包管理器
@@ -228,14 +219,6 @@ except ImportError as e:
     print(f'❌ 导入失败: {e}')
 "
 ```
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request！
-
-## 📄 许可证
-
-[指定你的许可证]
 
 # CVZone 手势检测项目
 

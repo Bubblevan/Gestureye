@@ -321,9 +321,11 @@ class GestureHistoryWidget(QWidget):
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.scroll_area.setMinimumHeight(150)  # 调整最小高度
+        # 设置滚动区域的大小策略，让它能够垂直扩展
+        from PyQt6.QtWidgets import QSizePolicy
         self.scroll_area.setSizePolicy(
-            self.scroll_area.sizePolicy().horizontalPolicy(),
-            self.scroll_area.sizePolicy().expandingPolicy()
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding
         )
         self.scroll_area.setStyleSheet("""
             QScrollArea {

@@ -404,18 +404,23 @@ class MainWindowUI(QMainWindow):
         timestamp = datetime.now().strftime("%H:%M:%S")
         log_entry = f"[{timestamp}] {message}"
         
-        self.logTextEdit.append(log_entry)
-        
-        # 自动滚动到底部
-        scrollbar = self.logTextEdit.verticalScrollBar()
-        scrollbar.setValue(scrollbar.maximum())
-        
-        # 限制日志条数，避免占用过多内存
-        if self.logTextEdit.document().blockCount() > 300:
-            cursor = self.logTextEdit.textCursor()
-            cursor.movePosition(cursor.MoveOperation.Start)
-            cursor.movePosition(cursor.MoveOperation.Down, cursor.MoveMode.KeepAnchor, 50)
-            cursor.removeSelectedText()
+        # 安全检查：只有在logTextEdit存在时才记录日志
+        if hasattr(self, 'logTextEdit') and self.logTextEdit is not None:
+            self.logTextEdit.append(log_entry)
+            
+            # 自动滚动到底部
+            scrollbar = self.logTextEdit.verticalScrollBar()
+            scrollbar.setValue(scrollbar.maximum())
+            
+            # 限制日志条数，避免占用过多内存
+            if self.logTextEdit.document().blockCount() > 300:
+                cursor = self.logTextEdit.textCursor()
+                cursor.movePosition(cursor.MoveOperation.Start)
+                cursor.movePosition(cursor.MoveOperation.Down, cursor.MoveMode.KeepAnchor, 50)
+                cursor.removeSelectedText()
+        else:
+            # 如果logTextEdit不可用，可以将日志输出到控制台
+            print(log_entry)
     
     def keyPressEvent(self, event):
         """键盘事件处理"""
@@ -572,11 +577,19 @@ class MainWindowUI(QMainWindow):
             self.detection_thread.wait(3000)  # 等待最多3秒
         
         # 保存当前设置
-        self.settings.setValue('debug_mode', self.debug_mode)
-        self.settings.setValue('expanded_view', self.expanded_view)
-        self.settings.setValue('auto_layout', self.auto_layout)
+        try:
+            self.settings.setValue('debug_mode', self.debug_mode)
+            self.settings.setValue('expanded_view', self.expanded_view)
+            self.settings.setValue('auto_layout', self.auto_layout)
+        except:
+            pass  # 忽略设置保存错误
         
-        self.log_message("感谢使用手势检测控制中心！")
+        # 在关闭前记录，但如果失败就忽略
+        try:
+            self.log_message("感谢使用手势检测控制中心！")
+        except:
+            print("感谢使用手势检测控制中心！")  # 备用输出
+            
         event.accept()
     
     def on_gesture_detail_detected(self, gesture_data: dict):
