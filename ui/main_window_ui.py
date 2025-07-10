@@ -217,6 +217,7 @@ class MainWindowUI(QMainWindow):
         self.detection_thread = SocketGestureReceiverThread()
         self.detection_thread.gesture_detected.connect(self.on_gesture_detected)
         self.detection_thread.gesture_detail_detected.connect(self.on_gesture_detail_detected)
+        self.detection_thread.trail_change_detected.connect(self.on_trail_change_detected)
         self.detection_thread.status_updated.connect(self.on_status_updated)
         self.detection_thread.error_occurred.connect(self.on_error_occurred)
     
@@ -742,28 +743,38 @@ class MainWindowUI(QMainWindow):
             self.log_message(f"处理详细手势数据失败: {e}")
     
     def _execute_gesture_action(self, gesture_name: str, hand_type: str, confidence: float):
-        """执行手势对应的动作"""
-        try:
-            # 获取手势绑定配置
-            binding = self.gesture_bindings.get_binding(gesture_name)
-            
-            if binding and binding.get('enabled', True):
-                # 执行动作
-                result = self.action_executor.execute_action(gesture_name, binding)
-                
-                if result is True:
-                    self.log_message(f"成功执行手势动作: {gesture_name} -> {binding.get('description', binding.get('action', ''))}")
+        """执行手势对应的动作（内部方法）"""
+        binding = self.gesture_bindings.get_binding(gesture_name)
+        if binding and binding.get("enabled", True):
+            result = self.action_executor.execute_action(gesture_name, binding)
+            if result is True:
+                action_desc = binding.get('description', binding.get('action', ''))
+                self.log_message(f"执行动作: {action_desc}")
+                if result is False:
+                    self.log_message(f"执行动作失败: {binding.get('action', '')}")
+            # result为None时表示在冷却期内，不记录日志
+        
                 elif result is False:
-                    self.log_message(f"执行手势动作失败: {gesture_name}")
-                elif result is None:
-                    # 在冷却时间内，跳过执行
-                    if self.debug_mode:
-                        self.log_message(f"手势动作在冷却时间内，跳过执行: {gesture_name}")
-            else:
-                if self.debug_mode:
-                    self.log_message(f"手势未绑定或已禁用: {gesture_name}")
+                    self.log_message(f"执行动作失败: {binding.get('action', '')}")
+            # result为None时表示在冷却期内，不记录日志
+    
+    def on_trail_change_detected(self, trail_data: dict):
+        """处理轨迹变化数据"""
+        try:
+            # 获取轨迹变化信息
+            details = trail_data.get('details', {})
+            dx = details.get('dx', 0)
+            dy = details.get('dy', 0)
+            hand_type = trail_data.get('hand_type', 'unknown')
+            
+            if self.debug_mode:
+                distance = details.get('distance', 0)
+                self.log_message(f"轨迹变化: {hand_type}手 移动({dx:+d},{dy:+d}) 距离={distance:.1f}")
+            
+            # 执行窗口拖拽动作，传递位移信息
+            self.action_executor.execute_window_drag_with_trail(dx, dy)
                     
         except Exception as e:
-            self.log_message(f"执行手势动作时出错: {e}")
+            self.log_message(f"处理轨迹变化失败: {e}")
 
     # ...existing code...

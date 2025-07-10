@@ -1,72 +1,72 @@
 {
   "FingerCountOne": {
-    "action_type": "system_function",
-    "action": "volume_up",
-    "description": "你好",
+    "action_type": "custom_function",
+    "action": "custom_action_1",
+    "description": "复制 (Ctrl+C)",
     "enabled": true,
     "gesture_type": "static"
   },
   "FingerCountTwo": {
-    "action_type": "system_function",
-    "action": "volume_up",
-    "description": "",
+    "action_type": "custom_function",
+    "action": "custom_action_2",
+    "description": "粘贴 (Ctrl+V)",
     "enabled": true,
     "gesture_type": "static"
   },
   "FingerCountThree": {
-    "action_type": "system_function",
-    "action": "volume_up",
-    "description": "",
-    "enabled": true,
-    "gesture_type": "static"
-  },
-  "ThumbsUp": {
-    "action_type": "system_function",
-    "action": "volume_mute",
-    "description": "静音",
-    "enabled": true,
-    "gesture_type": "static"
-  },
-  "ThumbsDown": {
-    "action_type": "system_function",
-    "action": "brightness_down",
-    "description": "亮度减少",
+    "action_type": "custom_function",
+    "action": "custom_action_3",
+    "description": "撤销 (Ctrl+Z)",
     "enabled": true,
     "gesture_type": "static"
   },
   "HandOpen": {
     "action_type": "system_function",
     "action": "window_maximize",
-    "description": "最大化窗口",
+    "description": "将最上方的窗口全屏",
+    "enabled": true,
+    "gesture_type": "dynamic"
+  },
+  "TwoFingerSwipe": {
+    "action_type": "system_function",
+    "action": "window_minimize",
+    "description": "将最上方窗口最小化",
     "enabled": true,
     "gesture_type": "dynamic"
   },
   "HandClose": {
     "action_type": "system_function",
-    "action": "window_minimize",
-    "description": "最小化窗口",
+    "action": "window_drag",
+    "description": "抓住窗口移动",
     "enabled": true,
     "gesture_type": "dynamic"
   },
   "HandSwipe": {
     "action_type": "keyboard_shortcut",
     "action": "alt+tab",
-    "description": "应用切换",
+    "description": "切换窗口，将下一窗口放到最上层",
     "enabled": true,
     "gesture_type": "dynamic"
   },
   "HandFlip": {
     "action_type": "keyboard_shortcut",
     "action": "alt+f4",
-    "description": "关闭窗口",
+    "description": "关闭最上方窗口",
     "enabled": true,
     "gesture_type": "dynamic"
   },
-  "TwoFingerSwipe": {
-    "action_type": "keyboard_shortcut",
-    "action": "win+tab",
-    "description": "任务视图",
+  "ThumbsUp": {
+    "action_type": "system_function",
+    "action": "window_scroll_up",
+    "description": "将最上方的窗口向上滚动",
     "enabled": true,
-    "gesture_type": "dynamic"
+    "gesture_type": "static"
+  },
+  "ThumbsDown": {
+    "action_type": "system_function",
+    "action": "window_scroll_down",
+    "description": "将最上方的窗口向下滚动",
+    "enabled": true,
+    "gesture_type": "static"
   }
 }

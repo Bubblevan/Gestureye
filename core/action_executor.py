@@ -198,9 +198,22 @@ class ActionExecutor:
     
     def _execute_custom_function(self, function: str) -> bool:
         """执行自定义功能"""
-        # 这里可以添加自定义的功能
-        print(f"执行自定义功能: {function}")
-        return True
+        try:
+            if function == "custom_action_1":
+                # 数字1手势 - 复制
+                return self._execute_keyboard_shortcut("ctrl+c")
+            elif function == "custom_action_2":
+                # 数字2手势 - 粘贴
+                return self._execute_keyboard_shortcut("ctrl+v")
+            elif function == "custom_action_3":
+                # 数字3手势 - 撤销
+                return self._execute_keyboard_shortcut("ctrl+z")
+            else:
+                print(f"执行自定义功能: {function}")
+                return True
+        except Exception as e:
+            print(f"执行自定义功能失败: {function}, 错误: {e}")
+            return False
     
     def _maximize_active_window(self) -> bool:
         """最大化当前活动窗口"""
@@ -455,10 +468,167 @@ class ActionExecutor:
         self.execution_cooldown = cooldown
 
     def _window_drag(self) -> bool:
-        """窗口拖拽模拟"""
-        # TODO: 实现真正的窗口拖拽逻辑
-        # 目前的实现与 window_switch 重复，暂时留空
-        print("窗口拖拽功能尚未实现")
+        """窗口拖拽初始化 - 触发手势时调用一次"""
+        print("HandClose手势触发，开始窗口拖拽模式")
+        # 这里可以进行一些初始化工作，如获取当前活动窗口信息
+        return True
+    
+    def execute_window_drag_with_trail(self, dx: int, dy: int) -> bool:
+        """根据轨迹数据执行窗口拖拽"""
+        try:
+            if self.os == "Windows" and HAS_WIN32:
+                return self._windows_drag_with_trail(dx, dy)
+            elif self.os == "Darwin":  # macOS
+                return self._macos_drag_with_trail(dx, dy)
+            elif self.os == "Linux":
+                return self._linux_drag_with_trail(dx, dy)
+            else:
+                print(f"不支持的操作系统: {self.os}")
+                return False
+        except Exception as e:
+            print(f"窗口拖拽失败: {e}")
+            return False
+    
+    def _windows_drag_with_trail(self, dx: int, dy: int) -> bool:
+        """Windows窗口拖拽实现"""
+        if not HAS_WIN32:
+            print("Windows API不可用，使用鼠标模拟")
+            return self._simulate_mouse_drag(dx, dy)
+            
+        try:
+            # 获取前台窗口
+            hwnd = win32gui.GetForegroundWindow()
+            if not hwnd:
+                return False
+            
+            # 获取窗口当前位置
+            rect = win32gui.GetWindowRect(hwnd)
+            left, top, right, bottom = rect
+            
+            # 计算新位置
+            new_left = left + dx
+            new_top = top + dy
+            width = right - left
+            height = bottom - top
+            
+            # 移动窗口
+            win32gui.SetWindowPos(
+                hwnd, 0, new_left, new_top, width, height,
+                win32con.SWP_NOZORDER | win32con.SWP_NOACTIVATE
+            )
+            return True
+            
+        except Exception as e:
+            print(f"Windows窗口拖拽失败: {e}")
+            return self._simulate_mouse_drag(dx, dy)
+    
+    def _macos_drag_with_trail(self, dx: int, dy: int) -> bool:
+        """macOS窗口拖拽实现"""
+        try:
+            # 使用AppleScript移动窗口
+            script = f'''
+            tell application "System Events"
+                set frontApp to first application process whose frontmost is true
+                tell frontApp
+                    set windowPosition to position of front window
+                    set newX to (item 1 of windowPosition) + {dx}
+                    set newY to (item 2 of windowPosition) + {dy}
+                    set position of front window to {{newX, newY}}
+                end tell
+            end tell
+            '''
+            subprocess.run(['osascript', '-e', script], capture_output=True, check=True)
+            return True
+        except Exception as e:
+            print(f"macOS窗口拖拽失败: {e}")
+            return self._simulate_mouse_drag(dx, dy)
+    
+    def _linux_drag_with_trail(self, dx: int, dy: int) -> bool:
+        """Linux窗口拖拽实现"""
+        try:
+            # 尝试使用wmctrl
+            result = subprocess.run(['wmctrl', '-r', ':ACTIVE:', '-e', f'0,-1,-1,-1,-1'], 
+                                  capture_output=True, text=True)
+            if result.returncode != 0:
+                raise subprocess.CalledProcessError(result.returncode, 'wmctrl')
+            
+            # 获取当前活动窗口信息
+            result = subprocess.run(['wmctrl', '-lG'], capture_output=True, text=True, check=True)
+            lines = result.stdout.strip().split('\n')
+            
+            # 找到活动窗口
+            active_result = subprocess.run(['xprop', '-root', '_NET_ACTIVE_WINDOW'], 
+                                         capture_output=True, text=True, check=True)
+            active_id = active_result.stdout.split()[-1]
+            
+            for line in lines:
+                if active_id in line:
+                    parts = line.split()
+                    if len(parts) >= 5:
+                        current_x, current_y = int(parts[2]), int(parts[3])
+                        new_x, new_y = current_x + dx, current_y + dy
+                        
+                        # 移动窗口
+                        subprocess.run(['wmctrl', '-r', ':ACTIVE:', '-e', f'0,{new_x},{new_y},-1,-1'], 
+                                     check=True)
+                        return True
+            
+            return False
+            
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            # wmctrl不可用，尝试使用X11
+            if HAS_XLIB:
+                return self._x11_drag_with_trail(dx, dy)
+            else:
+                return self._simulate_mouse_drag(dx, dy)
+    
+    def _x11_drag_with_trail(self, dx: int, dy: int) -> bool:
+        """使用X11直接操作窗口"""
+        try:
+            d = display.Display()
+            root = d.screen().root
+            
+            # 获取活动窗口
+            active_window = root.get_full_property(
+                d.intern_atom('_NET_ACTIVE_WINDOW'), 0
+            ).value[0]
+            
+            window = d.create_resource_object('window', active_window)
+            geom = window.get_geometry()
+            
+            # 计算新位置
+            new_x = geom.x + dx
+            new_y = geom.y + dy
+            
+            # 移动窗口
+            window.configure(x=new_x, y=new_y)
+            d.sync()
+            return True
+            
+        except Exception as e:
+            print(f"X11窗口拖拽失败: {e}")
+            return self._simulate_mouse_drag(dx, dy)
+    
+    def _simulate_mouse_drag(self, dx: int, dy: int) -> bool:
+        """使用鼠标模拟拖拽（备用方案）"""
+        try:
+            # 获取当前鼠标位置
+            current_pos = self.mouse_controller.position
+            
+            # 模拟拖拽：按下左键，移动，释放
+            self.mouse_controller.press(Button.left)
+            time.sleep(0.05)
+            
+            # 移动鼠标
+            new_pos = (current_pos[0] + dx, current_pos[1] + dy)
+            self.mouse_controller.position = new_pos
+            time.sleep(0.05)
+            
+            self.mouse_controller.release(Button.left)
+            return True
+            
+        except Exception as e:
+            print(f"鼠标拖拽模拟失败: {e}")
         return False
 
     def _window_switch(self) -> bool:

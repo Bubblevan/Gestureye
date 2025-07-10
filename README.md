@@ -343,3 +343,65 @@ uv run main.py
 ### 自定义手势参数
 
 修改 `config.py` 中的 `GESTURE_CONFIG` 部分来调整检测参数。
+
+---
+
+## 🔄 系统更新 - 轨迹数据处理
+
+### 📊 新增功能 (最新更新)
+
+#### 🎯 完整手势绑定配置
+现在所有 10 个手势都已配置完成：
+
+| 编号 | 手势名 | 功能 | 类型 |
+|------|--------|------|------|
+| 1 | FingerCountOne | 复制 (Ctrl+C) | 静态 |
+| 2 | FingerCountTwo | 粘贴 (Ctrl+V) | 静态 |
+| 3 | FingerCountThree | 撤销 (Ctrl+Z) | 静态 |
+| 4 | HandOpen | 窗口全屏 | 动态 |
+| 5 | TwoFingerSwipe | 窗口最小化 | 动态 |
+| 6 | HandClose | **真正的窗口拖拽** | 动态+轨迹 |
+| 7 | HandSwipe | 窗口切换 | 动态 |
+| 8 | HandFlip | 关闭窗口 | 动态 |
+| 9 | ThumbsUp | 向上滚动 | 静态 |
+| 10 | ThumbsDown | 向下滚动 | 静态 |
+
+#### 🔧 轨迹数据处理系统
+
+**HandClose 手势工作流程：**
+1. **触发阶段**：检测到"张开到握拳"动作 → 发送 `gesture_detection` 类型数据
+2. **追踪阶段**：握拳移动 → 持续发送 `trail_change` 类型数据，包含 `dx`、`dy` 位移信息
+3. **执行阶段**：UI 实时根据位移数据移动活动窗口
+
+**技术实现：**
+- ✅ 修复了 Socket 接收器对 `trail_change` 类型数据的处理
+- ✅ 新增 `trail_change_detected` 信号传递轨迹数据
+- ✅ 实现跨平台窗口拖拽功能（Windows API、macOS AppleScript、Linux wmctrl/X11）
+- ✅ 添加鼠标模拟拖拽作为备用方案
+
+#### 🚀 启动测试
+
+1. **启动 project (UI控制台)：**
+   ```bash
+   cd project
+   python app.py
+   # 点击 "🔌 启动Socket服务器"
+   ```
+
+2. **启动 dyn_gestures (手势识别)：**
+   ```bash
+   cd dyn_gestures
+   python main.py
+   ```
+
+3. **测试轨迹拖拽：**
+   - 张开手掌，然后握拳 → 触发 HandClose 手势
+   - 保持握拳状态并移动手部 → 看到活动窗口实时跟随移动
+   - 松开握拳 → 停止拖拽
+
+**调试模式：** 在 project 中启用"开发者模式"可以看到详细的轨迹数据：
+```
+轨迹变化: left手 移动(+5,-3) 距离=5.8
+```
+
+现在系统已完全解决了 HandClose 手势的轨迹数据处理问题，不会再出现重复执行最小化的冲突！🎉

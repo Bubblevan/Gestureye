@@ -15,6 +15,7 @@ class SocketGestureReceiverThread(QThread):
     """Socket 手势接收线程"""
     gesture_detected = pyqtSignal(str, str, float)  # gesture_name, hand_type, confidence
     gesture_detail_detected = pyqtSignal(dict)  # 完整的手势数据字典
+    trail_change_detected = pyqtSignal(dict)  # 轨迹变化数据，包含dx, dy等信息
     client_connected = pyqtSignal(str)  # client address
     client_disconnected = pyqtSignal(str)  # client address
     status_updated = pyqtSignal(str)  # status message
@@ -75,6 +76,10 @@ class SocketGestureReceiverThread(QThread):
                 # 发送信号
                 self.gesture_detected.emit(gesture_name, hand_type, confidence)
                 self.gesture_detail_detected.emit(processed_data)
+                
+            elif gesture_type == 'trail_change':
+                # 轨迹变化数据 - 新增处理
+                self.trail_change_detected.emit(processed_data)
                 
             elif gesture_type == 'text':
                 # 文本消息
