@@ -325,6 +325,8 @@ class MainWindow(QMainWindow):
         
         # 绑定配置标签页
         binding_widget = GestureBindingDialog(self)
+        # 连接配置更新信号
+        binding_widget.gesture_bindings_updated.connect(self.on_gesture_bindings_updated)
         tab_widget.addTab(binding_widget, "🎯 手势绑定")
         
         # 监控标签页
@@ -578,12 +580,26 @@ class MainWindow(QMainWindow):
     def clear_log(self):
         """清空日志"""
         self.log_text.clear()
-        self.add_log_message("🗑 日志已清空")
+        self.add_log_message("📝 日志已清空")
+    
+    def on_gesture_bindings_updated(self, bindings):
+        """手势绑定配置更新回调"""
+        try:
+            # 发送信号通知其他组件配置已更新
+            from core.gesture_bindings import GestureBindings
+            gesture_bindings = GestureBindings()
+            gesture_bindings.load_bindings()  # 重新加载配置
+            
+            self.add_log_message("✅ 手势绑定配置已更新并保存")
+            print(f"配置已更新: {len(bindings)} 个手势绑定")
+            
+        except Exception as e:
+            self.add_log_message(f"❌ 更新手势绑定配置失败: {e}")
+            print(f"配置更新失败: {e}")
     
     def update_interface(self):
-        """定期更新界面"""
-        # 更新客户端数量显示
-        self.update_client_list()
+        """更新界面状态"""
+        pass
     
     def closeEvent(self, event):
         """关闭事件"""

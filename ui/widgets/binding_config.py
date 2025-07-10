@@ -23,6 +23,9 @@ class GestureBindingDialog(QDialog):
         self.setModal(True)
         self.resize(600, 500)
         
+        # 添加标志位防止信号循环
+        self._updating_ui = False
+        
         # 加载当前绑定配置
         self.current_bindings = {}
         self.load_current_bindings()
@@ -30,6 +33,9 @@ class GestureBindingDialog(QDialog):
         # 设置UI
         self.setup_ui()
         self.load_bindings_to_ui()
+        
+        # 初始化配置区域为空状态
+        self.clear_config_display()
         
         # 连接信号
         self.setup_connections()
@@ -351,12 +357,16 @@ class GestureBindingDialog(QDialog):
     
     def setup_connections(self):
         """设置信号连接"""
+        # 手势选择
         self.gesture_list.currentRowChanged.connect(self.on_gesture_selected)
-        self.action_type_combo.currentTextChanged.connect(self.on_action_type_changed)
+        
+        # 配置改变
         self.enabled_checkbox.toggled.connect(self.on_config_changed)
-        self.action_combo.currentTextChanged.connect(self.on_config_changed)
+        self.action_type_combo.currentTextChanged.connect(self.on_action_type_changed)
+        self.action_combo.currentIndexChanged.connect(self.on_config_changed)
         self.description_edit.textChanged.connect(self.on_config_changed)
         
+        # 按钮
         self.save_btn.clicked.connect(self.save_configuration)
         self.reset_btn.clicked.connect(self.reset_current_gesture)
         self.cancel_btn.clicked.connect(self.reject)
@@ -364,23 +374,91 @@ class GestureBindingDialog(QDialog):
     def load_current_bindings(self):
         """加载当前绑定配置"""
         try:
-            config_file = "gesture_bindings.json"
+            # 确保从正确的路径加载
+            import os
+            current_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))  # 回到project目录
+            config_file = os.path.join(current_dir, "gesture_bindings.json")
+            
+            print(f"尝试加载配置文件: {config_file}")
+            
             if os.path.exists(config_file):
                 with open(config_file, 'r', encoding='utf-8') as f:
                     self.current_bindings = json.load(f)
+                print(f"成功加载配置文件: {len(self.current_bindings)} 个手势")
             else:
-                # 使用默认配置
+                print("配置文件不存在，使用默认配置")
+                # 使用与gesture_bindings.json文件匹配的默认配置
                 self.current_bindings = {
-                    "thumbs_up": {"action_type": "system_function", "action": "volume_up", "description": "音量增加", "enabled": True},
-                    "thumbs_down": {"action_type": "system_function", "action": "volume_down", "description": "音量减少", "enabled": True},
-                    "peace": {"action_type": "system_function", "action": "play_pause", "description": "播放/暂停", "enabled": True},
-                    "ok": {"action_type": "system_function", "action": "volume_mute", "description": "静音", "enabled": True},
-                    "pinch": {"action_type": "system_function", "action": "previous_track", "description": "上一首", "enabled": True},
-                    "wave": {"action_type": "system_function", "action": "next_track", "description": "下一首", "enabled": True},
-                    "swipe_left": {"action_type": "keyboard_shortcut", "action": "alt+left", "description": "后退", "enabled": True},
-                    "swipe_right": {"action_type": "keyboard_shortcut", "action": "alt+right", "description": "前进", "enabled": True},
-                    "swipe_up": {"action_type": "keyboard_shortcut", "action": "page_up", "description": "向上滚动", "enabled": True},
-                    "swipe_down": {"action_type": "keyboard_shortcut", "action": "page_down", "description": "向下滚动", "enabled": True}
+                    "FingerCountOne": {
+                        "action_type": "custom_function",
+                        "action": "custom_action_1", 
+                        "description": "复制 (Ctrl+C)",
+                        "enabled": True,
+                        "gesture_type": "static"
+                    },
+                    "FingerCountTwo": {
+                        "action_type": "custom_function",
+                        "action": "custom_action_2",
+                        "description": "粘贴 (Ctrl+V)", 
+                        "enabled": True,
+                        "gesture_type": "static"
+                    },
+                    "FingerCountThree": {
+                        "action_type": "custom_function",
+                        "action": "custom_action_3",
+                        "description": "撤销 (Ctrl+Z)",
+                        "enabled": True,
+                        "gesture_type": "static"
+                    },
+                    "ThumbsUp": {
+                        "action_type": "system_function",
+                        "action": "window_scroll_up",
+                        "description": "将最上方的窗口向上滚动",
+                        "enabled": True,
+                        "gesture_type": "static"
+                    },
+                    "ThumbsDown": {
+                        "action_type": "system_function",
+                        "action": "window_scroll_down", 
+                        "description": "将最上方的窗口向下滚动",
+                        "enabled": True,
+                        "gesture_type": "static"
+                    },
+                    "HandOpen": {
+                        "action_type": "system_function",
+                        "action": "window_maximize",
+                        "description": "将最上方的窗口全屏",
+                        "enabled": True,
+                        "gesture_type": "dynamic"
+                    },
+                    "HandClose": {
+                        "action_type": "system_function", 
+                        "action": "window_drag",
+                        "description": "抓住窗口移动",
+                        "enabled": True,
+                        "gesture_type": "dynamic"
+                    },
+                    "HandSwipe": {
+                        "action_type": "keyboard_shortcut",
+                        "action": "alt+tab",
+                        "description": "切换窗口，将下一窗口放到最上层",
+                        "enabled": True,
+                        "gesture_type": "dynamic"
+                    },
+                    "HandFlip": {
+                        "action_type": "keyboard_shortcut",
+                        "action": "alt+f4",
+                        "description": "关闭最上方窗口",
+                        "enabled": True,
+                        "gesture_type": "dynamic"
+                    },
+                    "TwoFingerSwipe": {
+                        "action_type": "system_function",
+                        "action": "window_minimize",
+                        "description": "将最上方窗口最小化",
+                        "enabled": True,
+                        "gesture_type": "dynamic"
+                    }
                 }
         except Exception as e:
             print(f"加载配置失败: {e}")
@@ -421,54 +499,108 @@ class GestureBindingDialog(QDialog):
             
             self.gesture_list.addItem(item)
         
-        # 选中第一个项目
-        if self.gesture_list.count() > 0:
-            self.gesture_list.setCurrentRow(0)
+        # 不自动选中任何手势，让用户手动选择
+        print("手势列表已加载，等待用户选择")
+    
+    def clear_config_display(self):
+        """清空配置显示区域"""
+        self.enabled_checkbox.setChecked(True)
+        self.action_type_combo.setCurrentIndex(0)
+        self.action_combo.clear()
+        self.action_combo.addItem("请先选择手势", "")
+        self.description_edit.setText("请在左侧选择要配置的手势")
+        
+        # 禁用控件直到选择手势
+        self.enabled_checkbox.setEnabled(False)
+        self.action_type_combo.setEnabled(False)
+        self.action_combo.setEnabled(False)
+        self.description_edit.setEnabled(False)
+        self.save_btn.setEnabled(False)
+        self.reset_btn.setEnabled(False)
     
     def on_gesture_selected(self, row):
         """手势选择事件"""
         if row < 0:
+            # 没有选择任何手势时清空显示
+            self.clear_config_display()
             return
             
         item = self.gesture_list.item(row)
         if not item:
+            self.clear_config_display()
             return
             
         gesture_key = item.data(Qt.ItemDataRole.UserRole)
+        
+        # 启用所有控件
+        self.enabled_checkbox.setEnabled(True)
+        self.action_type_combo.setEnabled(True)
+        self.action_combo.setEnabled(True)
+        self.description_edit.setEnabled(True)
+        self.save_btn.setEnabled(True)
+        self.reset_btn.setEnabled(True)
+        
+        # 如果手势不在配置中，创建默认配置
         if gesture_key not in self.current_bindings:
-            return
+            print(f"手势 {gesture_key} 不在配置中，创建默认配置")
+            self.current_bindings[gesture_key] = {
+                "action_type": "system_function",
+                "action": "volume_up",
+                "description": "待配置",
+                "enabled": True,
+                "gesture_type": "static" if gesture_key in ["FingerCountOne", "FingerCountTwo", "FingerCountThree", "ThumbsUp", "ThumbsDown"] else "dynamic"
+            }
             
         config = self.current_bindings[gesture_key]
         
-        # 更新UI
-        self.enabled_checkbox.setChecked(config.get("enabled", True))
+        # 设置标志位，防止信号触发配置更新
+        self._updating_ui = True
         
-        # 设置动作类型
-        action_type = config.get("action_type", "system_function")
-        if action_type == "system_function":
-            self.action_type_combo.setCurrentText("系统功能")
-        elif action_type == "keyboard_shortcut":
-            self.action_type_combo.setCurrentText("键盘快捷键")
-        else:
-            self.action_type_combo.setCurrentText("自定义功能")
-        
-        # 更新动作选项
-        self.on_action_type_changed(self.action_type_combo.currentText())
-        
-        # 根据内部值设置选中项
-        current_action = config.get("action", "")
-        self.set_action_combo_by_value(current_action)
-        
-        # 设置描述
-        self.description_edit.setText(config.get("description", ""))
+        try:
+            # 更新UI
+            self.enabled_checkbox.setChecked(config.get("enabled", True))
+            
+            # 设置动作类型
+            action_type = config.get("action_type", "system_function")
+            if action_type == "system_function":
+                self.action_type_combo.setCurrentText("系统功能")
+            elif action_type == "keyboard_shortcut":
+                self.action_type_combo.setCurrentText("键盘快捷键")
+            else:
+                self.action_type_combo.setCurrentText("自定义功能")
+            
+            # 更新动作选项
+            self.on_action_type_changed(self.action_type_combo.currentText())
+            
+            # 根据内部值设置选中项
+            current_action = config.get("action", "")
+            self.set_action_combo_by_value(current_action)
+            
+            # 设置描述
+            self.description_edit.setText(config.get("description", ""))
+            
+            print(f"已选择手势: {gesture_key}, 配置: {config}")
+            
+        finally:
+            # 清除标志位
+            self._updating_ui = False
     
     def set_action_combo_by_value(self, value):
         """根据内部值设置下拉框选中项"""
+        found = False
         for i in range(self.action_combo.count()):
             item_data = self.action_combo.itemData(i)
             if item_data == value:
                 self.action_combo.setCurrentIndex(i)
+                found = True
+                print(f"设置下拉框选中项: {value} -> {self.action_combo.itemText(i)}")
                 break
+        
+        if not found:
+            print(f"警告: 未找到匹配的动作值: {value}")
+            if self.action_combo.count() > 0:
+                self.action_combo.setCurrentIndex(0)
+                print(f"默认选择第一个选项: {self.action_combo.currentText()}")
     
     def on_action_type_changed(self, action_type):
         """动作类型改变事件"""
@@ -477,12 +609,24 @@ class GestureBindingDialog(QDialog):
         if action_type == "系统功能":
             # 系统功能选项：显示名称 + 内部值
             actions = [
+                # 窗口管理
+                ("窗口最大化", "window_maximize"),
+                ("窗口最小化", "window_minimize"),
+                ("窗口还原", "window_restore"),
+                ("窗口关闭", "window_close"),
+                ("窗口拖拽", "window_drag"),
+                ("窗口切换", "window_switch"),
+                ("向上滚动", "window_scroll_up"),
+                ("向下滚动", "window_scroll_down"),
+                # 音量控制
                 ("音量增加", "volume_up"),
                 ("音量减少", "volume_down"),
                 ("静音切换", "volume_mute"),
+                # 媒体控制
                 ("播放/暂停", "play_pause"),
                 ("下一首", "next_track"),
-                ("上一首", "previous_track"),
+                ("上一首", "prev_track"),
+                # 系统功能
                 ("亮度增加", "brightness_up"),
                 ("亮度减少", "brightness_down"),
                 ("锁定屏幕", "lock_screen"),
@@ -557,11 +701,11 @@ class GestureBindingDialog(QDialog):
         else:
             # 自定义功能选项
             actions = [
-                ("自定义功能1", "custom_function_1"),
-                ("自定义功能2", "custom_function_2"),
-                ("自定义功能3", "custom_function_3"),
-                ("自定义功能4", "custom_function_4"),
-                ("自定义功能5", "custom_function_5"),
+                ("复制功能 (自定义1)", "custom_action_1"),
+                ("粘贴功能 (自定义2)", "custom_action_2"),
+                ("撤销功能 (自定义3)", "custom_action_3"),
+                ("自定义功能4", "custom_action_4"),
+                ("自定义功能5", "custom_action_5"),
                 ("打开计算器", "open_calculator"),
                 ("打开记事本", "open_notepad"),
                 ("打开浏览器", "open_browser"),
@@ -579,6 +723,10 @@ class GestureBindingDialog(QDialog):
     
     def on_config_changed(self):
         """配置改变事件"""
+        # 如果正在更新UI，跳过配置更新以防止循环
+        if self._updating_ui:
+            return
+            
         # 获取当前选中的手势
         current_row = self.gesture_list.currentRow()
         if current_row < 0:
@@ -612,18 +760,20 @@ class GestureBindingDialog(QDialog):
         
         config["description"] = self.description_edit.text()
         
+        print(f"配置已更新: {gesture_key} -> {config}")
+        
         # 更新列表显示
         gesture_names = {
-            "thumbs_up": "拇指向上",
-            "thumbs_down": "拇指向下", 
-            "peace": "V字手势",
-            "ok": "OK手势",
-            "pinch": "捏合手势",
-            "wave": "挥手手势",
-            "swipe_left": "向左滑动",
-            "swipe_right": "向右滑动",
-            "swipe_up": "向上滑动",
-            "swipe_down": "向下滑动"
+            "FingerCountOne": "数字一手势",
+            "FingerCountTwo": "数字二手势", 
+            "FingerCountThree": "数字三手势",
+            "ThumbsUp": "竖大拇指",
+            "ThumbsDown": "倒竖大拇指",
+            "HandOpen": "握拳到张开",
+            "HandClose": "张开到握拳",
+            "HandSwipe": "手左右挥动",
+            "HandFlip": "手掌翻转",
+            "TwoFingerSwipe": "双指滑动"
         }
         
         gesture_name = gesture_names.get(gesture_key, gesture_key)
@@ -648,16 +798,76 @@ class GestureBindingDialog(QDialog):
         
         # 默认配置
         default_configs = {
-            "thumbs_up": {"action_type": "system_function", "action": "volume_up", "description": "音量增加", "enabled": True},
-            "thumbs_down": {"action_type": "system_function", "action": "volume_down", "description": "音量减少", "enabled": True},
-            "peace": {"action_type": "system_function", "action": "play_pause", "description": "播放/暂停", "enabled": True},
-            "ok": {"action_type": "system_function", "action": "volume_mute", "description": "静音", "enabled": True},
-            "pinch": {"action_type": "system_function", "action": "previous_track", "description": "上一首", "enabled": True},
-            "wave": {"action_type": "system_function", "action": "next_track", "description": "下一首", "enabled": True},
-            "swipe_left": {"action_type": "keyboard_shortcut", "action": "alt+left", "description": "后退", "enabled": True},
-            "swipe_right": {"action_type": "keyboard_shortcut", "action": "alt+right", "description": "前进", "enabled": True},
-            "swipe_up": {"action_type": "keyboard_shortcut", "action": "page_up", "description": "向上滚动", "enabled": True},
-            "swipe_down": {"action_type": "keyboard_shortcut", "action": "page_down", "description": "向下滚动", "enabled": True}
+            "FingerCountOne": {
+                "action_type": "custom_function",
+                "action": "custom_action_1", 
+                "description": "复制 (Ctrl+C)",
+                "enabled": True,
+                "gesture_type": "static"
+            },
+            "FingerCountTwo": {
+                "action_type": "custom_function",
+                "action": "custom_action_2",
+                "description": "粘贴 (Ctrl+V)", 
+                "enabled": True,
+                "gesture_type": "static"
+            },
+            "FingerCountThree": {
+                "action_type": "custom_function",
+                "action": "custom_action_3",
+                "description": "撤销 (Ctrl+Z)",
+                "enabled": True,
+                "gesture_type": "static"
+            },
+            "ThumbsUp": {
+                "action_type": "system_function",
+                "action": "window_scroll_up",
+                "description": "将最上方的窗口向上滚动",
+                "enabled": True,
+                "gesture_type": "static"
+            },
+            "ThumbsDown": {
+                "action_type": "system_function",
+                "action": "window_scroll_down", 
+                "description": "将最上方的窗口向下滚动",
+                "enabled": True,
+                "gesture_type": "static"
+            },
+            "HandOpen": {
+                "action_type": "system_function",
+                "action": "window_maximize",
+                "description": "将最上方的窗口全屏",
+                "enabled": True,
+                "gesture_type": "dynamic"
+            },
+            "HandClose": {
+                "action_type": "system_function", 
+                "action": "window_drag",
+                "description": "抓住窗口移动",
+                "enabled": True,
+                "gesture_type": "dynamic"
+            },
+            "HandSwipe": {
+                "action_type": "keyboard_shortcut",
+                "action": "alt+tab",
+                "description": "切换窗口，将下一窗口放到最上层",
+                "enabled": True,
+                "gesture_type": "dynamic"
+            },
+            "HandFlip": {
+                "action_type": "keyboard_shortcut",
+                "action": "alt+f4",
+                "description": "关闭最上方窗口",
+                "enabled": True,
+                "gesture_type": "dynamic"
+            },
+            "TwoFingerSwipe": {
+                "action_type": "system_function",
+                "action": "window_minimize",
+                "description": "将最上方窗口最小化",
+                "enabled": True,
+                "gesture_type": "dynamic"
+            }
         }
         
         if gesture_key in default_configs:
@@ -667,15 +877,27 @@ class GestureBindingDialog(QDialog):
     def save_configuration(self):
         """保存配置"""
         try:
+            # 确保保存到正确的路径
+            import os
+            current_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))  # 回到project目录
+            config_file = os.path.join(current_dir, "gesture_bindings.json")
+            
+            print(f"保存配置到: {config_file}")
+            
             # 保存到文件
-            with open("gesture_bindings.json", 'w', encoding='utf-8') as f:
+            with open(config_file, 'w', encoding='utf-8') as f:
                 json.dump(self.current_bindings, f, ensure_ascii=False, indent=2)
             
             # 发送信号
             self.gesture_bindings_updated.emit(self.current_bindings)
             
-            # 关闭对话框
-            self.accept()
+            print("配置保存成功")
+            
+            # 显示成功消息（不关闭对话框，因为它作为标签页使用）
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.information(self, "成功", "配置已保存！")
             
         except Exception as e:
+            print(f"保存配置失败: {e}")
+            from PyQt6.QtWidgets import QMessageBox
             QMessageBox.critical(self, "错误", f"保存配置失败: {e}") 

@@ -57,7 +57,7 @@
   },
   "ThumbsUp": {
     "action_type": "system_function",
-    "action": "window_scroll_up",
+    "action": "window_scroll_down",
     "description": "将最上方的窗口向上滚动",
     "enabled": true,
     "gesture_type": "static"
