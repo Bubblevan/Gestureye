@@ -17,7 +17,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>手势检测控制中心</string>
+   <string>手视</string>
   </property>
   <property name="styleSheet">
    <string notr="true">QMainWindow {
@@ -596,7 +596,7 @@ QScrollBar::sub-line:vertical {
           <item>
            <widget class="QLabel" name="welcomeTitle">
             <property name="text">
-             <string>手势检测控制中心 - Socket服务器</string>
+             <string>手势检测控制中心 - Socket 服务器</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -616,7 +616,7 @@ QScrollBar::sub-line:vertical {
           <item>
            <widget class="QLabel" name="welcomeSubtitle">
             <property name="text">
-             <string>接收dyn_gestures项目发送的手势数据</string>
+             <string>接收 dyn_gestures 项目发送的手势数据</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -635,10 +635,10 @@ QScrollBar::sub-line:vertical {
           <item>
            <widget class="QLabel" name="instructionLabel">
             <property name="text">
-             <string>点击左侧"启动Socket服务器"按钮开始接收手势数据
+             <string>点击左侧"启动 Socket 服务器"按钮开始接收手势数据
 
 本应用只接收数据，不调用摄像头
-需要先启动dyn_gestures项目进行手势识别
+需要先启动 dyn_gestures 项目进行手势识别
 开发者可启用调试模式查看详细信息</string>
             </property>
             <property name="alignment">
@@ -798,9 +798,17 @@ QMenuBar::item:pressed {
     <addaction name="actionCustomGestureBindings"/>
     <addaction name="actionResetBindings"/>
    </widget>
+   <widget class="QMenu" name="menuCommunication">
+    <property name="title">
+     <string>通信</string>
+    </property>
+    <addaction name="actionToggleConnectionType"/>
+    <addaction name="actionShowConnectionStatus"/>
+   </widget>
    <addaction name="menuDebug"/>
    <addaction name="menuView"/>
    <addaction name="menuConfig"/>
+   <addaction name="menuCommunication"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionToggleDebugMode">
@@ -853,6 +861,28 @@ QMenuBar::item:pressed {
     <string>Ctrl+R</string>
    </property>
   </action>
+     <action name="actionToggleConnectionType">
+    <property name="text">
+     <string>切换通信方式</string>
+    </property>
+    <property name="toolTip">
+     <string>在 Socket 和 Bluetooth 通信方式之间切换</string>
+    </property>
+    <property name="shortcut">
+     <string>Ctrl+T</string>
+    </property>
+   </action>
+     <action name="actionShowConnectionStatus">
+    <property name="text">
+     <string>显示通信状态</string>
+    </property>
+    <property name="toolTip">
+     <string>显示当前通信方式 (Socket/Bluetooth) 和连接状态详情</string>
+    </property>
+    <property name="shortcut">
+     <string>Ctrl+S</string>
+    </property>
+   </action>
  </widget>
  <resources/>
  <connections/>

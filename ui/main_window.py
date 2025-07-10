@@ -3,10 +3,12 @@
 """
 
 import sys
+import os
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                              QLabel, QPushButton, QTextEdit, QTabWidget, 
                              QGroupBox, QSplitter, QFrame, QScrollArea,
-                             QGridLayout, QSpacerItem, QSizePolicy, QMessageBox)
+                             QGridLayout, QSpacerItem, QSizePolicy, QMessageBox,
+                             QComboBox)
 from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, pyqtProperty
 from PyQt6.QtGui import QPixmap, QImage, QFont, QPalette, QColor, QLinearGradient, QPainter
 
@@ -143,6 +145,9 @@ class MainWindow(QMainWindow):
         self.gesture_bindings = GestureBindings()
         self.action_executor = ActionExecutor()
         self.socket_receiver = None
+        
+        # 初始化通信配置
+        self.current_connection_type = self.read_connection_type()
         
         self.init_ui()
         self.setup_socket_receiver()
@@ -300,6 +305,41 @@ class MainWindow(QMainWindow):
         status_layout.addStretch()
         
         control_layout.addLayout(status_layout)
+        
+        # 通信方式切换区域
+        comm_layout = QVBoxLayout()
+        
+        # 通信方式标题
+        comm_title = QLabel("通信方式:")
+        comm_title.setFont(QFont("Segoe UI", 12, QFont.Weight.Bold))
+        comm_layout.addWidget(comm_title)
+        
+        # 通信方式选择和状态
+        comm_control_layout = QHBoxLayout()
+        
+        # 当前通信方式显示
+        self.connection_type_label = QLabel(f"当前: {self.current_connection_type.upper()}")
+        self.connection_type_label.setStyleSheet("""
+            QLabel {
+                color: #059669;
+                font-weight: bold;
+                font-size: 14px;
+                padding: 5px 10px;
+                background: #ecfdf5;
+                border-radius: 6px;
+                border: 1px solid #a7f3d0;
+            }
+        """)
+        comm_control_layout.addWidget(self.connection_type_label)
+        
+        # 切换按钮
+        self.toggle_connection_btn = ModernButton("切换到 Serial" if self.current_connection_type == "socket" else "切换到 Socket")
+        self.toggle_connection_btn.clicked.connect(self.toggle_connection_type)
+        self.toggle_connection_btn.setMinimumHeight(40)
+        comm_control_layout.addWidget(self.toggle_connection_btn)
+        
+        comm_layout.addLayout(comm_control_layout)
+        control_layout.addLayout(comm_layout)
         
         layout.addWidget(control_card)
         
@@ -606,6 +646,160 @@ class MainWindow(QMainWindow):
         if self.socket_receiver and self.socket_receiver.running:
             self.socket_receiver.stop()
         event.accept()
+    
+    def read_connection_type(self) -> str:
+        """读取当前通信配置类型"""
+        try:
+            # 读取dyn_gestures/config.py文件
+            config_path = os.path.join("..", "dyn_gestures", "config.py")
+            if not os.path.exists(config_path):
+                # 如果相对路径不存在，尝试绝对路径
+                current_dir = os.path.dirname(os.path.abspath(__file__))
+                config_path = os.path.join(current_dir, "..", "..", "dyn_gestures", "config.py")
+            
+            with open(config_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+            # 查找CONNECTION_TYPE配置行
+            for line in content.split('\n'):
+                if line.strip().startswith('CONNECTION_TYPE') and '=' in line:
+                    # 提取配置值
+                    value = line.split('=')[1].strip().strip("'\"")
+                    return value
+                    
+            return 'socket'  # 默认值
+            
+        except Exception as e:
+            print(f"读取通信配置失败: {e}")
+            return 'socket'  # 默认值
+    
+    def write_connection_type(self, connection_type: str) -> bool:
+        """写入通信配置类型"""
+        try:
+            # 读取dyn_gestures/config.py文件
+            config_path = os.path.join("..", "dyn_gestures", "config.py")
+            if not os.path.exists(config_path):
+                # 如果相对路径不存在，尝试绝对路径
+                current_dir = os.path.dirname(os.path.abspath(__file__))
+                config_path = os.path.join(current_dir, "..", "..", "dyn_gestures", "config.py")
+            
+            with open(config_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+            
+            # 修改CONNECTION_TYPE配置行
+            for i, line in enumerate(lines):
+                if line.strip().startswith('CONNECTION_TYPE') and '=' in line:
+                    # 保持原有的注释
+                    if '#' in line:
+                        comment = line.split('#', 1)[1]
+                        lines[i] = f"CONNECTION_TYPE = '{connection_type}'      #{comment}"
+                    else:
+                        lines[i] = f"CONNECTION_TYPE = '{connection_type}'\n"
+                    break
+            
+            # 写入文件
+            with open(config_path, 'w', encoding='utf-8') as f:
+                f.writelines(lines)
+                
+            return True
+            
+        except Exception as e:
+            print(f"写入通信配置失败: {e}")
+            return False
+    
+    def toggle_connection_type(self):
+        """切换通信方式"""
+        try:
+            # 确定新的通信类型
+            new_type = 'serial' if self.current_connection_type == 'socket' else 'socket'
+            
+            # 提示用户
+            reply = QMessageBox.question(
+                self, 
+                '切换通信方式', 
+                f'确定要将通信方式从 {self.current_connection_type.upper()} 切换到 {new_type.upper()} 吗？\n\n'
+                f'这将修改手势检测模块的配置文件。',
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+            
+            if reply == QMessageBox.StandardButton.Yes:
+                # 如果当前服务器正在运行，先停止
+                was_running = False
+                if self.socket_receiver and self.socket_receiver.running:
+                    was_running = True
+                    self.stop_socket_server()
+                
+                # 写入新配置
+                if self.write_connection_type(new_type):
+                    # 更新当前状态
+                    self.current_connection_type = new_type
+                    
+                    # 更新UI
+                    self.connection_type_label.setText(f"当前: {new_type.upper()}")
+                    self.toggle_connection_btn.setText(
+                        "切换到 Serial" if new_type == "socket" else "切换到 Socket"
+                    )
+                    
+                    # 更新状态指示器颜色
+                    if new_type == "socket":
+                        self.connection_type_label.setStyleSheet("""
+                            QLabel {
+                                color: #059669;
+                                font-weight: bold;
+                                font-size: 14px;
+                                padding: 5px 10px;
+                                background: #ecfdf5;
+                                border-radius: 6px;
+                                border: 1px solid #a7f3d0;
+                            }
+                        """)
+                    else:
+                        self.connection_type_label.setStyleSheet("""
+                            QLabel {
+                                color: #dc2626;
+                                font-weight: bold;
+                                font-size: 14px;
+                                padding: 5px 10px;
+                                background: #fef2f2;
+                                border-radius: 6px;
+                                border: 1px solid #fecaca;
+                            }
+                        """)
+                    
+                    # 显示成功消息
+                    QMessageBox.information(
+                        self, 
+                        '切换成功', 
+                        f'通信方式已成功切换到 {new_type.upper()}！\n\n'
+                        f'请重启手势检测模块以应用新配置。'
+                    )
+                    
+                    # 如果之前服务器在运行，询问是否重启
+                    if was_running and new_type == "socket":
+                        restart_reply = QMessageBox.question(
+                            self,
+                            '重启服务器',
+                            '是否重新启动Socket服务器？',
+                            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                            QMessageBox.StandardButton.Yes
+                        )
+                        if restart_reply == QMessageBox.StandardButton.Yes:
+                            self.start_socket_server()
+                    
+                else:
+                    QMessageBox.critical(
+                        self,
+                        '切换失败',
+                        '无法写入配置文件，请检查文件权限。'
+                    )
+                    
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                '切换失败',
+                f'切换通信方式时发生错误：\n{str(e)}'
+            )
 
 
 def main():

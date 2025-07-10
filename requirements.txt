@@ -1,5 +1,20 @@
 # 手势检测项目依赖
 PyQt6>=6.0.0
 pynput>=1.7.0
+
+# 平台特定依赖
 # pywin32 仅在 Windows 平台需要，其他平台将自动跳过
 pywin32; sys_platform == "win32"
+
+# 蓝牙功能依赖 (可选)
+# pybluez>=0.23  # 注释掉，因为在Python 3.12上安装有问题
+psutil>=5.8.0
+
+# 系统信息查询 (Windows特定)
+wmi>=1.5.1; sys_platform == "win32"
+
+# 注意: 
+# - 蓝牙功能目前使用系统API获取MAC地址，无需pybluez
+# - 如果需要完整蓝牙功能，可在其他Python版本中安装pybluez
+# - Windows: 使用注册表和WMI获取蓝牙信息
+# - Linux/macOS: 使用系统文件和psutil

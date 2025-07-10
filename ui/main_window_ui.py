@@ -47,6 +47,9 @@ class MainWindowUI(QMainWindow):
         self.action_executor = ActionExecutor()
         self.detection_thread = None
         
+        # 初始化通信配置
+        self.current_connection_type = self.read_connection_type()
+        
         # 初始化手势历史记录组件
         self.gesture_history_widget = GestureHistoryWidget()
         self.gesture_history_widget.clear_history_requested.connect(self.clear_gesture_history)
@@ -198,6 +201,10 @@ class MainWindowUI(QMainWindow):
         # 连接按钮点击事件
         self.startBtn.clicked.connect(self.start_detection)
         self.stopBtn.clicked.connect(self.stop_detection)
+        
+        # 连接通信相关的菜单动作
+        self.actionToggleConnectionType.triggered.connect(self.toggle_connection_type)
+        self.actionShowConnectionStatus.triggered.connect(self.show_connection_status)
         
         # 连接调试模式切换
         self.debugModeBtn.toggled.connect(self.toggle_debug_mode)
@@ -777,4 +784,268 @@ class MainWindowUI(QMainWindow):
         except Exception as e:
             self.log_message(f"处理轨迹变化失败: {e}")
 
-    # ...existing code...
+    def read_connection_type(self) -> str:
+        """读取当前通信配置类型"""
+        try:
+            # 读取dyn_gestures/config.py文件
+            config_path = os.path.join("..", "dyn_gestures", "config.py")
+            if not os.path.exists(config_path):
+                # 如果相对路径不存在，尝试绝对路径
+                current_dir = os.path.dirname(os.path.abspath(__file__))
+                config_path = os.path.join(current_dir, "..", "..", "dyn_gestures", "config.py")
+            
+            with open(config_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+            # 查找CONNECTION_TYPE配置行
+            for line in content.split('\n'):
+                if line.strip().startswith('CONNECTION_TYPE') and '=' in line:
+                    # 提取配置值
+                    value = line.split('=')[1].strip().strip("'\"")
+                    return value
+                    
+            return 'socket'  # 默认值
+            
+        except Exception as e:
+            print(f"读取通信配置失败: {e}")
+            return 'socket'  # 默认值
+    
+    def write_connection_type(self, connection_type: str) -> bool:
+        """写入通信配置类型"""
+        try:
+            # 读取dyn_gestures/config.py文件
+            config_path = os.path.join("..", "dyn_gestures", "config.py")
+            if not os.path.exists(config_path):
+                # 如果相对路径不存在，尝试绝对路径
+                current_dir = os.path.dirname(os.path.abspath(__file__))
+                config_path = os.path.join(current_dir, "..", "..", "dyn_gestures", "config.py")
+            
+            with open(config_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+            
+            # 修改CONNECTION_TYPE配置行
+            for i, line in enumerate(lines):
+                if line.strip().startswith('CONNECTION_TYPE') and '=' in line:
+                    # 保持原有的注释
+                    if '#' in line:
+                        comment = line.split('#', 1)[1]
+                        lines[i] = f"CONNECTION_TYPE = '{connection_type}'      #{comment}"
+                    else:
+                        lines[i] = f"CONNECTION_TYPE = '{connection_type}'\n"
+                    break
+            
+            # 写入文件
+            with open(config_path, 'w', encoding='utf-8') as f:
+                f.writelines(lines)
+                
+            return True
+            
+        except Exception as e:
+            print(f"写入通信配置失败: {e}")
+            return False
+    
+    def toggle_connection_type(self):
+        """切换通信方式"""
+        try:
+            from PyQt6.QtWidgets import QMessageBox
+            
+            # 确定新的通信类型
+            new_type = 'serial' if self.current_connection_type == 'socket' else 'socket'
+            
+            # 获取用户友好的显示名称
+            current_display = 'Socket' if self.current_connection_type == 'socket' else 'Bluetooth'
+            new_display = 'Bluetooth' if new_type == 'serial' else 'Socket'
+            
+            # 提示用户
+            reply = QMessageBox.question(
+                self, 
+                '切换通信方式', 
+                f'确定要将通信方式从 {current_display} 切换到 {new_display} 吗？\n\n'
+                f'说明：\n'
+                f'• Socket: 使用TCP/IP网络通信\n'
+                f'• Bluetooth: 使用蓝牙RFCOMM协议通信\n\n'
+                f'这将修改手势检测模块的配置文件。',
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+            
+            if reply == QMessageBox.StandardButton.Yes:
+                # 如果当前服务器正在运行，先停止
+                was_running = self.is_detecting
+                if was_running:
+                    self.stop_detection()
+                
+                # 写入新配置
+                if self.write_connection_type(new_type):
+                    # 更新当前状态
+                    self.current_connection_type = new_type
+                    
+                    self.log_message(f"🔄 通信方式已切换到: {new_display}")
+                    
+                    # 如果切换到蓝牙模式，立即获取并打印MAC地址
+                    if new_type == 'serial':
+                        self._print_bluetooth_mac_address()
+                    
+                    # 显示成功消息
+                    QMessageBox.information(
+                        self, 
+                        '切换成功', 
+                        f'通信方式已成功切换到 {new_display}！\n\n'
+                        f'请重启手势检测模块以应用新配置。'
+                    )
+                    
+                    # 如果之前在运行，询问是否重启
+                    if was_running:
+                        restart_reply = QMessageBox.question(
+                            self,
+                            '重启检测',
+                            '是否重新启动手势检测？',
+                            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                            QMessageBox.StandardButton.Yes
+                        )
+                        if restart_reply == QMessageBox.StandardButton.Yes:
+                            self.start_detection()
+                    
+                else:
+                    QMessageBox.critical(
+                        self,
+                        '切换失败',
+                        '无法写入配置文件，请检查文件权限。'
+                    )
+                    
+        except Exception as e:
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.critical(
+                self,
+                '切换失败',
+                f'切换通信方式时发生错误：\n{str(e)}'
+            )
+    
+    def show_connection_status(self):
+        """显示通信状态"""
+        try:
+            from PyQt6.QtWidgets import QMessageBox
+            
+            # 刷新当前配置
+            current_type = self.read_connection_type()
+            self.current_connection_type = current_type
+            
+            # 获取用户友好的显示名称
+            display_name = 'Socket' if current_type == 'socket' else 'Bluetooth'
+            
+            # 获取详细的服务器状态信息
+            server_info = {}
+            if hasattr(self, 'detection_thread') and self.detection_thread:
+                server_info = self.detection_thread.get_server_info()
+            
+            # 获取状态信息
+            if current_type == 'socket':
+                status_text = f"当前通信方式: Socket (TCP/IP)\n"
+                status_text += f"检测状态: {'运行中' if self.is_detecting else '已停止'}\n"
+                
+                if server_info.get('running', False):
+                    status_text += f"Socket地址: {server_info.get('host', '127.0.0.1')}:{server_info.get('port', 65432)}\n"
+                    status_text += f"活动连接数: {server_info.get('active_threads', 0)}\n"
+                else:
+                    status_text += f"Socket地址: 127.0.0.1:65432 (未启动)\n"
+                    
+                status_text += f"协议: TCP/IP网络通信"
+                
+            elif current_type == 'serial':
+                status_text = f"当前通信方式: Bluetooth (RFCOMM)\n"
+                status_text += f"检测状态: {'运行中' if self.is_detecting else '已停止'}\n"
+                
+                if server_info.get('running', False):
+                    status_text += f"蓝牙端口: RFCOMM端口{server_info.get('port', 4)}\n"
+                    status_text += f"活动连接数: {server_info.get('active_threads', 0)}\n"
+                    
+                    # 显示本机MAC地址
+                    local_mac = server_info.get('local_mac_address')
+                    if local_mac:
+                        status_text += f"本机MAC地址: {local_mac}\n"
+                        status_text += f"dyn_gestures配置:\n"
+                        status_text += f"  BLUETOOTH_MAC = '{local_mac}'\n"
+                        status_text += f"  CONNECTION_TYPE = 'serial'\n"
+                    else:
+                        status_text += "本机MAC地址: 无法获取\n"
+                    
+                    # 显示蓝牙支持状态
+                    if server_info.get('bluetooth_available', False):
+                        status_text += "蓝牙支持: 已启用\n"
+                    else:
+                        status_text += "蓝牙支持: 未安装 (需要: pip install pybluez)\n"
+                else:
+                    status_text += "蓝牙端口: RFCOMM端口4 (未启动)\n"
+                    
+                status_text += "协议: 蓝牙RFCOMM通信"
+            else:
+                status_text = f"当前通信方式: {current_type}\n"
+                status_text += "状态: 未知配置"
+            
+            QMessageBox.information(
+                self,
+                '通信状态',
+                status_text
+            )
+            
+            self.log_message(f"📊 通信状态: {display_name}")
+            
+        except Exception as e:
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.critical(
+                self,
+                '状态查询失败',
+                f'查询通信状态时发生错误：\n{str(e)}'
+            )
+    
+    def _print_bluetooth_mac_address(self):
+        """切换到蓝牙模式时立即获取并打印MAC地址"""
+        try:
+            from core.socket_server import BluetoothServer
+            
+            # 创建临时的蓝牙服务器实例来获取MAC地址
+            temp_bluetooth = BluetoothServer(host="", port=4)
+            
+            # 获取本机蓝牙MAC地址
+            mac_address = temp_bluetooth._get_local_bluetooth_mac()
+            
+            if mac_address:
+                print(f"\n🔵 蓝牙通信模式已启用")
+                print(f"   📍 本机蓝牙MAC地址: {mac_address}")
+                print(f"   🔌 RFCOMM端口: 4")
+                print(f"   📱 dyn_gestures配置提示:")
+                print(f"      BLUETOOTH_MAC = '{mac_address}'")
+                print(f"      BLUETOOTH_PORT = 4")
+                print(f"      CONNECTION_TYPE = 'serial'\n")
+                
+                # 同时记录到UI日志
+                self.log_message(f"📍 本机蓝牙MAC地址: {mac_address}")
+                self.log_message(f"🔌 RFCOMM端口: 4")
+                self.log_message(f"📱 请在dyn_gestures中配置: BLUETOOTH_MAC = '{mac_address}'")
+                
+            else:
+                print(f"\n🔵 蓝牙通信模式已启用")
+                print(f"   ⚠️  无法获取本机蓝牙MAC地址")
+                print(f"   🔌 RFCOMM端口: 4")
+                print(f"   💡 手动获取Windows蓝牙MAC地址:")
+                print(f"      1. 打开 设置 -> 蓝牙和设备")
+                print(f"      2. 点击 更多蓝牙设置")
+                print(f"      3. 在硬件选项卡中查看蓝牙适配器属性")
+                print(f"      4. 或者在设备管理器中查看蓝牙适配器详情")
+                print(f"   💡 或者尝试安装依赖: pip install psutil wmi")
+                print(f"   📱 然后在dyn_gestures中配置: BLUETOOTH_MAC = 'XX:XX:XX:XX:XX:XX'\n")
+                
+                # 记录到UI日志  
+                self.log_message("⚠️ 无法自动获取蓝牙MAC地址")
+                self.log_message("💡 请手动查看Windows蓝牙设置获取MAC地址")
+                self.log_message("📖 参考: 设置->蓝牙和设备->更多蓝牙设置")
+                
+        except Exception as e:
+            print(f"\n🔵 蓝牙通信模式已启用")
+            print(f"   ❌ 获取蓝牙MAC地址时出错: {e}")
+            print(f"   💡 请手动配置dyn_gestures中的BLUETOOTH_MAC")
+            print(f"   或安装所需依赖: pip install pybluez psutil\n")
+            
+            # 记录到UI日志
+            self.log_message(f"❌ 获取蓝牙MAC地址失败: {e}")
+            self.log_message("💡 请检查蓝牙依赖库安装情况")
