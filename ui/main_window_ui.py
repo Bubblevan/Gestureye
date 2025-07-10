@@ -77,8 +77,9 @@ class MainWindowUI(QMainWindow):
         self.layout_timer.timeout.connect(self.update_responsive_layout)
         self.layout_timer.setSingleShot(True)
         
-        # 添加手势历史标签页
-        self.add_gesture_history_tab()
+        # 手势历史组件将在展开视图中显示，不再作为标签页
+        # 延迟设置手势历史组件到右边栏，确保UI完全初始化后再添加
+        QTimer.singleShot(100, self.setup_gesture_history_sidebar)
     
     def setup_window_icon(self):
         """设置窗口图标（跨平台优化）"""
@@ -156,28 +157,61 @@ class MainWindowUI(QMainWindow):
         except Exception as e:
             print(f"设置窗口图标失败: {e}")
     
-    def add_gesture_history_tab(self):
-        """添加手势历史记录标签页"""
+    def setup_gesture_history_sidebar(self):
+        """在展开视图的右边栏中设置手势历史组件"""
         try:
-            # 在标签页中添加手势历史组件
-            self.tabWidget.addTab(self.gesture_history_widget, "历史记录")
+            print("开始设置手势历史右边栏...")
             
-            # 强制设置手势历史组件的最大宽度，绕过.ui文件限制
-            self.gesture_history_widget.setMaximumWidth(580)
+            # 检查各个组件是否存在
+            if hasattr(self, 'rightSidebar'):
+                print("找到rightSidebar组件")
+            else:
+                print("未找到rightSidebar组件")
+                
+            if hasattr(self, 'rightSidebarLayout'):
+                print("找到rightSidebarLayout布局")
+            else:
+                print("未找到rightSidebarLayout布局")
+                
+            if hasattr(self, 'gesture_history_widget'):
+                print("找到gesture_history_widget组件")
+            else:
+                print("未找到gesture_history_widget组件")
             
-            # 同时强制设置tabWidget的最大宽度
-            self.tabWidget.setMaximumWidth(600)
-            
-            # 设置标签页图标样式
-            tab_count = self.tabWidget.count()
-            self.tabWidget.setTabToolTip(tab_count - 1, "查看手势识别历史记录和统计信息")
-            
-            # 强制刷新布局
-            self.gesture_history_widget.updateGeometry()
-            self.tabWidget.updateGeometry()
-            
+            # 获取右边栏布局
+            if hasattr(self, 'rightSidebarLayout') and hasattr(self, 'gesture_history_widget'):
+                # 确保手势历史组件没有其他父对象
+                if self.gesture_history_widget.parent():
+                    print(f"手势历史组件当前父对象: {self.gesture_history_widget.parent()}")
+                    self.gesture_history_widget.setParent(None)
+                
+                # 将手势历史组件添加到右边栏
+                self.rightSidebarLayout.addWidget(self.gesture_history_widget)
+                
+                # 设置手势历史组件的大小策略
+                self.gesture_history_widget.setMaximumWidth(620)
+                
+                # 强制显示手势历史组件
+                self.gesture_history_widget.setVisible(True)
+                self.gesture_history_widget.show()
+                
+                # 强制刷新布局
+                self.gesture_history_widget.updateGeometry()
+                self.rightSidebar.updateGeometry()
+                
+                print("手势历史组件已成功添加到右边栏")
+                self.log_message("手势历史组件已添加到展开视图右边栏")
+            else:
+                error_msg = "右边栏布局或手势历史组件未找到，无法添加手势历史组件"
+                print(error_msg)
+                self.log_message(error_msg)
+                
         except Exception as e:
-            self.log_message(f"添加手势历史标签页失败: {e}")
+            error_msg = f"设置手势历史右边栏失败: {e}"
+            print(error_msg)
+            import traceback
+            traceback.print_exc()
+            self.log_message(error_msg)
     
     def clear_gesture_history(self):
         """清空手势历史记录"""
@@ -370,32 +404,18 @@ class MainWindowUI(QMainWindow):
         # 更新按钮文本
         if checked:
             self.debugModeBtn.setText("退出开发者模式")
-            self.log_message("开发者调试模式已启用")
+            self.log_message("开发者调试模式已启用 - 详细日志将显示在控制台")
             
-            # 在Socket模式下，调试模式主要用于显示详细日志
+            # 如果当前是紧凑视图，自动展开以显示手势历史
             if not self.expanded_view:
-                self.log_message("开发者模式已启用，展开右边栏查看详细信息")
-                self.expanded_view = True
-                self.contentPanel.setVisible(True)
-                self.actionToggleExpandedView.setChecked(True)
+                self.log_message("开发者模式已启用，展开手势历史查看详细信息")
+                self.toggle_expanded_view(True)
                 self.auto_layout = False
                 self.log_message("已禁用自动布局模式")
-                self.resize(1000, 700)
-            
-            # 显示调试面板（日志等信息），隐藏欢迎面板
-            self.welcomePanel.setVisible(False)
-            self.debugPanel.setVisible(True)
-            self.log_message("调试信息面板已显示")
             
         else:
             self.debugModeBtn.setText("开发者模式")
             self.log_message("开发者调试模式已关闭")
-            
-            # 如果当前是展开视图，隐藏调试面板，显示欢迎面板
-            if self.expanded_view:
-                self.debugPanel.setVisible(False)
-                self.welcomePanel.setVisible(True)
-                self.log_message("调试信息面板已隐藏")
         
         # 保存设置
         self.settings.setValue('debug_mode', checked)
@@ -409,24 +429,16 @@ class MainWindowUI(QMainWindow):
         self.auto_layout = False  # 手动切换时禁用自动布局
         
         if checked:
-            # 展开视图：显示右侧面板
+            # 展开视图：显示内容面板和手势历史边栏
             self.contentPanel.setVisible(True)
-            self.resize(1200, 700)  # 增加宽度以容纳固定630px的控制面板
-            self.log_message("已切换到展开视图模式")
-            
-            # 根据调试模式显示相应面板
-            if self.debug_mode:
-                self.welcomePanel.setVisible(False)
-                self.debugPanel.setVisible(True)
-            else:
-                self.welcomePanel.setVisible(True)
-                self.debugPanel.setVisible(False)
+            if hasattr(self, 'rightSidebar'):
+                self.rightSidebar.setVisible(True)
+            self.resize(1300, 700)  # 宽度：控制面板630px + 手势历史630px + 边距
+            self.log_message("已切换到展开视图模式（显示手势历史）")
         else:
-            # 紧凑视图：隐藏右侧面板
+            # 紧凑视图：隐藏内容面板
             self.contentPanel.setVisible(False)
-            self.welcomePanel.setVisible(False)
-            self.debugPanel.setVisible(False)
-            self.resize(630, 700)  # 增加宽度以容纳580px的手势历史组件
+            self.resize(650, 700)  # 仅显示控制面板的宽度
             self.log_message("已切换到紧凑视图模式，仅显示控制面板")
         
         # 更新菜单项状态
@@ -446,29 +458,25 @@ class MainWindowUI(QMainWindow):
         
         # 计算控制面板占用的宽度（包括边距）
         control_panel_width = self.controlPanel.width() + 20  # 考虑边距
-        available_width_for_content = current_width - control_panel_width
+        # 计算右边栏宽度（手势历史）
+        sidebar_width = 630 + 20 if hasattr(self, 'rightSidebar') else 0
         
-        # 基于水平空间决定是否展开内容面板
-        should_expand = available_width_for_content >= self.min_content_width
+        # 基于水平空间决定是否展开手势历史边栏
+        min_required_width = control_panel_width + sidebar_width
+        should_expand = current_width >= min_required_width
         
         if should_expand != self.expanded_view:
             if should_expand:
-                self.log_message(f"水平空间足够 ({available_width_for_content}px)，自动展开内容面板")
+                self.log_message(f"水平空间足够 ({current_width}px)，自动展开手势历史边栏")
             else:
-                self.log_message(f"水平空间不足 ({available_width_for_content}px)，切换到紧凑视图")
+                self.log_message(f"水平空间不足 ({current_width}px)，切换到紧凑视图")
             
             self.expanded_view = should_expand
+            # 控制内容面板和右边栏的显示
             self.contentPanel.setVisible(should_expand)
+            if hasattr(self, 'rightSidebar'):
+                self.rightSidebar.setVisible(should_expand)
             self.actionToggleExpandedView.setChecked(should_expand)
-            
-            # 在展开模式下根据调试状态显示相应面板
-            if should_expand:
-                if self.debug_mode:
-                    self.welcomePanel.setVisible(False)
-                    self.debugPanel.setVisible(True)
-                else:
-                    self.welcomePanel.setVisible(True)
-                    self.debugPanel.setVisible(False)
         
         # 确保窗口有足够的高度来显示内容（移除水平滚动的需要）
         min_required_height = 500  # 基础最小高度
@@ -492,9 +500,8 @@ class MainWindowUI(QMainWindow):
         # 强制初始为紧凑模式，不管之前的设置
         # 这确保程序启动时总是显示紧凑视图
         self.expanded_view = False
+        # 初始状态下隐藏内容面板（包含手势历史）
         self.contentPanel.setVisible(False)
-        self.welcomePanel.setVisible(False)
-        self.debugPanel.setVisible(False)
         self.actionToggleExpandedView.setChecked(False)
         
         # 只在程序真正需要时才调整窗口大小
@@ -513,7 +520,6 @@ class MainWindowUI(QMainWindow):
         # 如果启用了自动布局，立即检查当前窗口大小并更新布局
         # 延迟执行，确保所有初始化完成
         if self.auto_layout:
-            from PyQt6.QtCore import QTimer
             QTimer.singleShot(100, self.update_responsive_layout)
     
     def log_message(self, message: str):

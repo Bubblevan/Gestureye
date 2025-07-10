@@ -125,14 +125,15 @@ class GestureStatsWidget(QFrame):
             QSizePolicy.Policy.Expanding,  # 水平扩展，但不超出容器
             QSizePolicy.Policy.Minimum     # 垂直最小，允许内容完整显示
         )
-        # 设置固定最大宽度，防止溢出
-        self.setMaximumWidth(500)  # 小于控制面板宽度
+        # 设置固定最大宽度，与记录列表区域保持一致
+        self.setMaximumWidth(570)  # 与记录列表区域保持一致
+        self.setMinimumHeight(120)  # 设置最小高度
         self.setStyleSheet("""
             QFrame {
                 background: #f0f9ff;
                 border: 1px solid #0ea5e9;
                 border-radius: 8px;
-                padding: 6px;
+                padding: 12px;
             }
         """)
         
@@ -285,15 +286,16 @@ class GestureHistoryWidget(QWidget):
         self.clear_btn = QPushButton("🗑️ 清空")
         self.clear_btn.setStyleSheet("""
             QPushButton {
-                background: #fee2e2;
-                border: 1px solid #fca5a5;
-                color: #dc2626;
+                background: #f3f4f6;
+                border: 1px solid #d1d5db;
+                color: #6b7280;
                 padding: 3px 10px;
                 border-radius: 4px;
                 font-size: 11px;
             }
             QPushButton:hover {
-                background: #fecaca;
+                background: #e5e7eb;
+                color: #374151;
             }
         """)
         self.clear_btn.clicked.connect(self.clear_history_requested.emit)
@@ -303,8 +305,8 @@ class GestureHistoryWidget(QWidget):
         
         # 创建整体滚动区域（包含统计信息和记录列表）
         self.scroll_area = QScrollArea()
-        # 设置固定最大宽度，防止溢出
-        self.scroll_area.setMaximumWidth(590)  # 小于控制面板宽度
+        # 设置固定最大宽度，与内部组件保持一致
+        self.scroll_area.setMaximumWidth(620)  # 为内部组件留出足够空间
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # 禁用水平滚动
         self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)      # 需要时显示垂直滚动
@@ -343,16 +345,16 @@ class GestureHistoryWidget(QWidget):
         
         # 滚动内容容器（包含统计信息和记录列表）
         self.scroll_content = QWidget()
-        # 设置固定最大宽度，防止溢出
-        self.scroll_content.setMaximumWidth(580)  # 小于控制面板宽度
+        # 设置固定最大宽度，与内部组件保持一致
+        self.scroll_content.setMaximumWidth(600)  # 为内部组件留出足够空间
         # 确保滚动内容不会水平溢出
         self.scroll_content.setSizePolicy(
             QSizePolicy.Policy.Expanding,   # 水平扩展但适应容器
             QSizePolicy.Policy.Minimum      # 垂直最小，允许内容扩展
         )
         content_layout = QVBoxLayout(self.scroll_content)
-        content_layout.setSpacing(8)
-        content_layout.setContentsMargins(6, 6, 6, 6)
+        content_layout.setSpacing(16)  # 增大组件间的间距
+        content_layout.setContentsMargins(10, 10, 10, 10)  # 增大上下左右边距
         
         # 统计信息区域（完整显示，不压缩）
         self.stats_widget = GestureStatsWidget()
@@ -364,15 +366,19 @@ class GestureHistoryWidget(QWidget):
         
         # 记录列表区域（直接添加，不再嵌套滚动）
         history_group = QGroupBox("📜 记录列表")
-        # 设置固定最大宽度，防止溢出
-        history_group.setMaximumWidth(580)  # 小于控制面板宽度
+        # 设置固定最大宽度，与统计信息区域保持一致
+        history_group.setMaximumWidth(570)  # 与统计信息区域保持一致
+        history_group.setMinimumHeight(200)  # 设置最小高度
         history_group.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
                 border: 2px solid #e5e7eb;
-                border-radius: 6px;
+                border-radius: 8px;
                 margin-top: 4px;
-                padding-top: 4px;
+                padding-top: 8px;
+                padding-left: 12px;
+                padding-right: 12px;
+                padding-bottom: 12px;
             }
             QGroupBox::title {
                 subcontrol-origin: margin;
@@ -385,8 +391,8 @@ class GestureHistoryWidget(QWidget):
         
         # 记录列表容器（不再需要内部滚动）
         history_layout = QVBoxLayout(history_group)
-        history_layout.setSpacing(2)
-        history_layout.setContentsMargins(8, 12, 8, 8)
+        history_layout.setSpacing(8)  # 增大记录项间距
+        history_layout.setContentsMargins(4, 16, 4, 8)  # 调整边距
         
         # 历史记录直接容器（所有记录项的容器）
         self.history_container = QWidget()
@@ -396,7 +402,7 @@ class GestureHistoryWidget(QWidget):
             QSizePolicy.Policy.Minimum       # 垂直适应内容
         )
         self.history_layout = QVBoxLayout(self.history_container)
-        self.history_layout.setSpacing(6)
+        self.history_layout.setSpacing(10)  # 增大历史记录项间距
         self.history_layout.setContentsMargins(0, 0, 0, 0)
         
         history_layout.addWidget(self.history_container)
@@ -413,6 +419,8 @@ class GestureHistoryWidget(QWidget):
         """显示空状态"""
         empty_label = QLabel("🤷‍♂️ 暂无手势记录\n开始手势检测后，这里将显示识别到的手势历史")
         empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        empty_label.setMaximumWidth(570)  # 与其他组件保持一致
+        empty_label.setMinimumHeight(120)  # 与统计信息区域保持一致的最小高度
         empty_label.setStyleSheet("""
             QLabel {
                 color: #6b7280;
@@ -421,7 +429,7 @@ class GestureHistoryWidget(QWidget):
                 padding: 30px;
                 background: white;
                 border: 2px dashed #d1d5db;
-                border-radius: 6px;
+                border-radius: 8px;
             }
         """)
         self.history_layout.insertWidget(0, empty_label)

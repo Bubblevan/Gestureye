@@ -563,7 +563,7 @@ QScrollBar::sub-line:vertical {
       <property name="frameShape">
        <enum>QFrame::NoFrame</enum>
       </property>
-      <layout class="QVBoxLayout" name="contentLayout">
+      <layout class="QHBoxLayout" name="contentLayout">
        <property name="spacing">
         <number>10</number>
        </property>
@@ -579,156 +579,54 @@ QScrollBar::sub-line:vertical {
        <property name="bottomMargin">
         <number>0</number>
        </property>
+       
        <item>
-        <widget class="QFrame" name="welcomePanel">
+        <widget class="QFrame" name="rightSidebar">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+                   <property name="minimumSize">
+           <size>
+            <width>630</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>630</width>
+            <height>16777215</height>
+           </size>
+          </property>
          <property name="frameShape">
           <enum>QFrame::Box</enum>
          </property>
          <property name="styleSheet">
           <string notr="true">QFrame {
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
     border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 20px;
-}</string>
-         </property>
-         <layout class="QVBoxLayout" name="welcomeLayout">
-          <item>
-           <widget class="QLabel" name="welcomeTitle">
-            <property name="text">
-             <string>手势检测控制中心 - Socket 服务器</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QLabel {
-    font-size: 24px;
-    font-weight: bold;
-    color: #1f2937;
-    padding: 15px;
-    background: transparent;
-    border: none;
-}</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="welcomeSubtitle">
-            <property name="text">
-             <string>接收 dyn_gestures 项目发送的手势数据</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QLabel {
-    font-size: 16px;
-    color: #6b7280;
+    border-radius: 10px;
     padding: 8px;
-    background: transparent;
-    border: none;
-}</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="instructionLabel">
-            <property name="text">
-             <string>点击左侧"启动 Socket 服务器"按钮开始接收手势数据
-
-本应用只接收数据，不调用摄像头
-需要先启动 dyn_gestures 项目进行手势识别
-开发者可启用调试模式查看详细信息</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QLabel {
-    font-size: 14px;
-    line-height: 1.5;
-    color: #4b5563;
-    padding: 15px;
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-        stop:0 #f0f9ff, stop:1 #e0f2fe);
-    border: 1px solid #bae6fd;
-    border-radius: 8px;
-}</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QFrame" name="debugPanel">
-         <property name="visible">
-          <bool>false</bool>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::Box</enum>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QFrame {
-    background: white;
-    border: 2px solid #fbbf24;
-    border-radius: 12px;
-    padding: 15px;
 }</string>
          </property>
-         <layout class="QVBoxLayout" name="debugPanelLayout">
-          <item>
-           <widget class="QLabel" name="debugTitleLabel">
-            <property name="text">
-             <string>开发者调试面板</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QLabel {
-    font-size: 18px;
-    font-weight: bold;
-    color: #f59e0b;
-    padding: 8px;
-    background: #fefce8;
-    border: 1px solid #fde68a;
-    border-radius: 6px;
-}</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="cameraLabel">
-            <property name="minimumSize">
-             <size>
-              <width>400</width>
-              <height>300</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>摄像头预览
-启动检测后将显示实时画面</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QLabel {
-    font-size: 14px;
-    color: #6b7280;
-    border: 2px dashed #d1d5db;
-    border-radius: 8px;
-    background: #f9fafb;
-    padding: 15px;
-}</string>
-            </property>
-           </widget>
-          </item>
+         <layout class="QVBoxLayout" name="rightSidebarLayout">
+          <property name="spacing">
+           <number>5</number>
+          </property>
+          <property name="leftMargin">
+           <number>5</number>
+          </property>
+          <property name="topMargin">
+           <number>5</number>
+          </property>
+          <property name="rightMargin">
+           <number>5</number>
+          </property>
+          <property name="bottomMargin">
+           <number>5</number>
+          </property>
          </layout>
         </widget>
        </item>
