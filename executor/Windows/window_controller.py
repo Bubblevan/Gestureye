@@ -129,10 +129,12 @@ class WindowController:
             x = max(0, min(x, self.screen_width - width))
             y = max(0, min(y, self.screen_height - height))
             
-            return win32gui.SetWindowPos(
+            # SetWindowPos 成功时返回None，失败时抛出异常
+            win32gui.SetWindowPos(
                 hwnd, 0, x, y, width, height,
                 win32con.SWP_NOZORDER | win32con.SWP_NOACTIVATE
             )
+            return True  # 没有异常就表示成功
         except Exception as e:
             print(f"移动窗口失败: {e}")
             return False
@@ -184,10 +186,12 @@ class WindowController:
             width = min(self.screen_width, width)
             height = min(self.screen_height, height)
             
-            return win32gui.SetWindowPos(
+            # SetWindowPos 成功时返回None，失败时抛出异常
+            win32gui.SetWindowPos(
                 hwnd, 0, window_info.x, window_info.y, width, height,
                 win32con.SWP_NOZORDER | win32con.SWP_NOACTIVATE
             )
+            return True  # 没有异常就表示成功
         except Exception as e:
             print(f"调整窗口大小失败: {e}")
             return False
@@ -215,7 +219,9 @@ class WindowController:
             if not self._check_cooldown(f"maximize_{hwnd}"):
                 return False
             
-            return win32gui.ShowWindow(hwnd, win32con.SW_MAXIMIZE)
+            # ShowWindow 成功时返回None，失败时抛出异常
+            win32gui.ShowWindow(hwnd, win32con.SW_MAXIMIZE)
+            return True  # 没有异常就表示成功
         except Exception as e:
             print(f"最大化窗口失败: {e}")
             return False
@@ -226,7 +232,9 @@ class WindowController:
             if not self._check_cooldown(f"minimize_{hwnd}"):
                 return False
             
-            return win32gui.ShowWindow(hwnd, win32con.SW_MINIMIZE)
+            # ShowWindow 成功时返回None，失败时抛出异常
+            win32gui.ShowWindow(hwnd, win32con.SW_MINIMIZE)
+            return True  # 没有异常就表示成功
         except Exception as e:
             print(f"最小化窗口失败: {e}")
             return False
@@ -237,7 +245,9 @@ class WindowController:
             if not self._check_cooldown(f"restore_{hwnd}"):
                 return False
             
-            return win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+            # ShowWindow 成功时返回None，失败时抛出异常
+            win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+            return True  # 没有异常就表示成功
         except Exception as e:
             print(f"还原窗口失败: {e}")
             return False
@@ -245,7 +255,9 @@ class WindowController:
     def close_window(self, hwnd: int) -> bool:
         """关闭窗口"""
         try:
-            return win32gui.PostMessage(hwnd, win32con.WM_CLOSE, 0, 0)
+            # PostMessage 返回None表示成功
+            win32gui.PostMessage(hwnd, win32con.WM_CLOSE, 0, 0)
+            return True  # 没有异常就表示成功
         except Exception as e:
             print(f"关闭窗口失败: {e}")
             return False

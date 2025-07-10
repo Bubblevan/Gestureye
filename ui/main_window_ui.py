@@ -37,6 +37,12 @@ class MainWindowUI(QMainWindow):
         self.expanded_view = False
         self.is_detecting = False
         
+        # 拖拽状态管理
+        self.is_dragging = False
+        self.last_gesture = None
+        self.drag_gesture_timeout = 3.0  # 拖拽模式超时时间（秒）
+        self.last_gesture_time = 0
+        
         # 响应式布局设置 - 重构为以水平宽度为主的布局管理
         self.compact_width_threshold = 900  # 调整紧凑模式的宽度阈值，考虑手势历史组件的宽度需求
         self.auto_layout = True  # 自动布局管理
@@ -714,6 +720,9 @@ class MainWindowUI(QMainWindow):
             details = gesture_data.get('details', {})
             timestamp = gesture_data.get('timestamp', 0)
             
+            # 更新拖拽状态
+            self._update_drag_state(gesture_name, hand_type)
+            
             # 添加到手势历史记录
             self.gesture_history_widget.add_gesture(gesture_data)
             
@@ -757,12 +766,8 @@ class MainWindowUI(QMainWindow):
             if result is True:
                 action_desc = binding.get('description', binding.get('action', ''))
                 self.log_message(f"执行动作: {action_desc}")
-                if result is False:
-                    self.log_message(f"执行动作失败: {binding.get('action', '')}")
-            # result为None时表示在冷却期内，不记录日志
-        
-                elif result is False:
-                    self.log_message(f"执行动作失败: {binding.get('action', '')}")
+            elif result is False:
+                self.log_message(f"执行动作失败: {binding.get('action', '')}")
             # result为None时表示在冷却期内，不记录日志
     
     def on_trail_change_detected(self, trail_data: dict):
@@ -776,13 +781,53 @@ class MainWindowUI(QMainWindow):
             
             if self.debug_mode:
                 distance = details.get('distance', 0)
-                self.log_message(f"轨迹变化: {hand_type}手 移动({dx:+d},{dy:+d}) 距离={distance:.1f}")
+                drag_status = "拖拽中" if self.is_dragging else "非拖拽"
+                self.log_message(f"轨迹变化: {hand_type}手 移动({dx:+d},{dy:+d}) 距离={distance:.1f} [{drag_status}]")
             
-            # 执行窗口拖拽动作，传递位移信息
-            self.action_executor.execute_window_drag_with_trail(dx, dy)
+            # 只有在拖拽模式下才执行窗口拖拽
+            if self.is_dragging:
+                success = self.action_executor.execute_window_drag_with_trail(dx, dy)
+                if self.debug_mode:
+                    self.log_message(f"窗口拖拽执行: {'成功' if success else '失败'}")
+            else:
+                if self.debug_mode:
+                    self.log_message("忽略轨迹变化（未处于拖拽模式）")
                     
         except Exception as e:
             self.log_message(f"处理轨迹变化失败: {e}")
+    
+    def _update_drag_state(self, gesture_name: str, hand_type: str):
+        """更新拖拽状态"""
+        import time
+        
+        current_time = time.time()
+        self.last_gesture = gesture_name
+        self.last_gesture_time = current_time
+        
+        # 如果检测到HandClose手势，激活拖拽模式
+        if gesture_name == "HandClose":
+            if not self.is_dragging:
+                self.is_dragging = True
+                self.log_message(f"🖐️ 激活拖拽模式: {hand_type}手")
+        
+        # 如果检测到HandOpen手势，取消拖拽模式
+        elif gesture_name == "HandOpen":
+            if self.is_dragging:
+                self.is_dragging = False
+                self.log_message(f"✋ 取消拖拽模式: {hand_type}手")
+        
+        # 设置定时器，在一定时间后自动取消拖拽模式
+        if self.is_dragging:
+            QTimer.singleShot(int(self.drag_gesture_timeout * 1000), self._check_drag_timeout)
+    
+    def _check_drag_timeout(self):
+        """检查拖拽超时"""
+        import time
+        
+        current_time = time.time()
+        if self.is_dragging and (current_time - self.last_gesture_time) >= self.drag_gesture_timeout:
+            self.is_dragging = False
+            self.log_message("⏰ 拖拽模式超时自动取消")
 
     def read_connection_type(self) -> str:
         """读取当前通信配置类型"""

@@ -590,6 +590,9 @@ class GestureHandler(QObject):
             elif processed_data.get('type') == 'gesture_detection':
                 # 标准格式的手势数据
                 self._handle_gesture_detection(processed_data)
+            elif processed_data.get('type') == 'trail_change':
+                # 轨迹变化数据
+                self._handle_trail_change(processed_data)
             elif processed_data.get('type') == 'text':
                 # 文本消息
                 self._handle_text_message(processed_data)
@@ -618,6 +621,16 @@ class GestureHandler(QObject):
         # 这里可以添加具体的手势响应逻辑
         # 例如：执行对应的操作、更新UI等
         
+    def _handle_trail_change(self, data: Dict[str, Any]):
+        """处理轨迹变化数据"""
+        details = data.get('details', {})
+        dx = details.get('dx', 0)
+        dy = details.get('dy', 0)
+        distance = details.get('distance', 0)
+        hand_type = data.get('hand_type', 'Unknown')
+        
+        print(f"[TRAIL] 轨迹变化: {hand_type}手 dx={dx}, dy={dy}, distance={distance:.1f}")
+    
     def _handle_text_message(self, data: Dict[str, Any]):
         """处理文本消息"""
         message = data.get('message', '')
