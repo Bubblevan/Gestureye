@@ -55,8 +55,10 @@ class SocketGestureReceiverThread(QThread):
                 if line.strip().startswith('CONNECTION_TYPE') and '=' in line:
                     # 提取配置值
                     value = line.split('=')[1].strip().strip("'\"")
+                    print(f"[通信线程] 读取到配置: CONNECTION_TYPE = '{value}'")
                     return value
                     
+            print(f"[通信线程] 未找到CONNECTION_TYPE配置，使用默认值: 'socket'")
             return 'socket'  # 默认值
             
         except Exception as e:

@@ -10,7 +10,7 @@ SOCKET_SERVER_HOST = "127.0.0.1"  # 本地回环地址
 SOCKET_SERVER_PORT = 65432
 
 # 通信方式配置
-CONNECTION_TYPE = 'socket'  # 通信模式：'socket' 或 'serial' (蓝牙)
+CONNECTION_TYPE = 'serial'  # 通信模式：'socket' 或 'serial' (蓝牙)
 
 # 蓝牙配置
 BLUETOOTH_MAC = "XX:XX:XX:XX:XX:XX"  # 蓝牙MAC地址（自动检测）

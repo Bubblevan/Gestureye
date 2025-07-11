@@ -44,7 +44,7 @@ class MainWindowUI(QMainWindow):
         self.last_gesture_time = 0
         
         # 响应式布局设置 - 重构为以水平宽度为主的布局管理
-        self.compact_width_threshold = 900  # 调整紧凑模式的宽度阈值，考虑手势历史组件的宽度需求
+        self.compact_width_threshold = 800  # 调整紧凑模式的宽度阈值，考虑手势历史组件的宽度需求
         self.auto_layout = True  # 自动布局管理
         self.min_content_width = 600  # 内容区域最小宽度，确保手势历史组件不会溢出
         
@@ -1008,6 +1008,42 @@ class MainWindowUI(QMainWindow):
                 if self.write_connection_type(new_type):
                     # 更新当前状态
                     self.current_connection_type = new_type
+                    
+                    # 重新创建通信线程以使用新配置
+                    if hasattr(self, 'detection_thread') and self.detection_thread:
+                        self.detection_thread.stop()
+                        self.detection_thread.wait()
+                    
+                    # 创建新的通信线程（会重新读取配置文件）
+                    from ui.threads.socket_gesture_receiver import SocketGestureReceiverThread
+                    self.detection_thread = SocketGestureReceiverThread()
+                    self.detection_thread.gesture_detected.connect(self.on_gesture_detected)
+                    self.detection_thread.gesture_detail_detected.connect(self.on_gesture_detail_detected)
+                    self.detection_thread.trail_change_detected.connect(self.on_trail_change_detected)
+                    self.detection_thread.status_updated.connect(self.on_status_updated)
+                    self.detection_thread.error_occurred.connect(self.on_error_occurred)
+                    
+                    # 验证线程是否正确读取了新配置
+                    thread_connection_type = self.detection_thread.connection_type
+                    self.log_message(f"线程配置验证: 期望 {new_type}，实际 {thread_connection_type}")
+                    
+                    if thread_connection_type != new_type:
+                        self.log_message(f"警告：线程配置不匹配，强制重新初始化")
+                        # 强制重新初始化线程
+                        self.detection_thread.stop()
+                        self.detection_thread.wait()
+                        self.detection_thread = SocketGestureReceiverThread()
+                        self.detection_thread.gesture_detected.connect(self.on_gesture_detected)
+                        self.detection_thread.gesture_detail_detected.connect(self.on_gesture_detail_detected)
+                        self.detection_thread.trail_change_detected.connect(self.on_trail_change_detected)
+                        self.detection_thread.status_updated.connect(self.on_status_updated)
+                        self.detection_thread.error_occurred.connect(self.on_error_occurred)
+                        
+                        # 再次验证
+                        final_connection_type = self.detection_thread.connection_type
+                        self.log_message(f"重新初始化后配置: {final_connection_type}")
+                    else:
+                        self.log_message(f"线程配置验证通过")
                     
                     self.log_message(f"通信方式已切换到: {new_display}")
                     
