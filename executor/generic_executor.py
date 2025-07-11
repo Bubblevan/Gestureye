@@ -4,8 +4,6 @@
 """
 
 import time
-from typing import Optional
-from pynput import keyboard, mouse
 from pynput.keyboard import Key, Controller as KeyboardController
 from pynput.mouse import Controller as MouseController, Button
 
