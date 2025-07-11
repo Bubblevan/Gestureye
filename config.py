@@ -6,7 +6,7 @@
 LOG_PATH = "logs/app.log"
 
 # Socket服务器配置
-SOCKET_SERVER_HOST = "127.0.0.1"  # 本地回环地址
+SOCKET_SERVER_HOST = "10.162.34.40"  # 本地回环地址
 SOCKET_SERVER_PORT = 65432
 
 # 通信方式配置

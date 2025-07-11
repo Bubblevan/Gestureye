@@ -36,6 +36,7 @@ name = "gesture-control-system"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "py-applescript", marker = "sys_platform == 'darwin'" },
     { name = "pyautogui" },
     { name = "pynput" },
     { name = "pyqt6", version = "6.7.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
@@ -45,6 +46,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "py-applescript", marker = "sys_platform == 'darwin'" },
     { name = "pyautogui", specifier = ">=0.9.54" },
     { name = "pynput", specifier = ">=1.7.0" },
     { name = "pyqt6", specifier = ">=6.0.0" },
@@ -283,6 +285,22 @@ wheels = [
 ]
 
 [[package]]
+name = "py-applescript"
+version = "1.0.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pyobjc-core", marker = "(python_full_version < '3.10' and platform_machine != 'aarch64') or (python_full_version < '3.10' and sys_platform != 'linux') or sys_platform == 'darwin'" },
+    { name = "pyobjc-framework-applescriptkit", version = "10.3.2", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.9' and platform_machine != 'aarch64') or (python_full_version < '3.9' and sys_platform != 'linux')" },
+    { name = "pyobjc-framework-applescriptkit", version = "11.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version == '3.9.*' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.9' and sys_platform == 'darwin') or (python_full_version == '3.9.*' and sys_platform != 'darwin' and sys_platform != 'linux')" },
+    { name = "pyobjc-framework-applescriptobjc", version = "10.3.2", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.9' and platform_machine != 'aarch64') or (python_full_version < '3.9' and sys_platform != 'linux')" },
+    { name = "pyobjc-framework-applescriptobjc", version = "11.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version == '3.9.*' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.9' and sys_platform == 'darwin') or (python_full_version == '3.9.*' and sys_platform != 'darwin' and sys_platform != 'linux')" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b2/13/781639401dd0e6fc11b2b6d4999ec8e951b50df2600eebee8e929b009da1/py-applescript-1.0.3.tar.gz", hash = "sha256:fa22c955fc25b3d24e03e66825b36a721897ec0d9b6ce185a4d177e2d1ecfa6b", size = 24925, upload-time = "2022-01-23T05:39:23.427Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9b/f6/fed1fb7eb1603ad50accbb5c4e1f0c5f8f7d164acd2619f062d20c2a7858/py_applescript-1.0.3-py3-none-any.whl", hash = "sha256:eb21dfc6e845a40be602372a5c3d6317f7ad3c999c2c355a00d1a19bdb1d57c0", size = 22392, upload-time = "2022-01-23T05:39:35.966Z" },
+]
+
+[[package]]
 name = "pyautogui"
 version = "0.9.54"
 source = { registry = "https://pypi.org/simple" }
@@ -346,6 +364,88 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/ed/7d/6169f16a0c7ec15b9381f8bf33872baf912de2ef68d96c798ca4c6ee641f/pyobjc_core-11.1-cp314-cp314-macosx_11_0_universal2.whl", hash = "sha256:8cb9ed17a8d84a312a6e8b665dd22393d48336ea1d8277e7ad20c19a38edf731", size = 667203, upload-time = "2025-06-14T20:44:53.262Z" },
     { url = "https://files.pythonhosted.org/packages/49/0f/f5ab2b0e57430a3bec9a62b6153c0e79c05a30d77b564efdb9f9446eeac5/pyobjc_core-11.1-cp314-cp314t-macosx_11_0_universal2.whl", hash = "sha256:f2455683e807f8541f0d83fbba0f5d9a46128ab0d5cc83ea208f0bec759b7f96", size = 708807, upload-time = "2025-06-14T20:44:54.851Z" },
     { url = "https://files.pythonhosted.org/packages/0b/3c/98f04333e4f958ee0c44ceccaf0342c2502d361608e00f29a5d50e16a569/pyobjc_core-11.1-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:4a99e6558b48b8e47c092051e7b3be05df1c8d0617b62f6fa6a316c01902d157", size = 677089, upload-time = "2025-06-14T20:44:56.15Z" },
+]
+
+[[package]]
+name = "pyobjc-framework-applescriptkit"
+version = "10.3.2"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.8.1' and python_full_version < '3.9' and platform_machine == 'arm64' and sys_platform == 'darwin'",
+    "python_full_version < '3.8.1' and platform_machine == 'arm64' and sys_platform == 'darwin'",
+    "(python_full_version >= '3.8.1' and python_full_version < '3.9' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.8.1' and python_full_version < '3.9' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.8.1' and python_full_version < '3.9' and sys_platform != 'darwin' and sys_platform != 'linux')",
+    "(python_full_version < '3.8.1' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.8.1' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.8.1' and sys_platform != 'darwin' and sys_platform != 'linux')",
+]
+dependencies = [
+    { name = "pyobjc-core", marker = "(python_full_version < '3.9' and platform_machine != 'aarch64') or (python_full_version < '3.9' and sys_platform != 'linux')" },
+    { name = "pyobjc-framework-cocoa", version = "10.3.2", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.9' and platform_machine != 'aarch64') or (python_full_version < '3.9' and sys_platform != 'linux')" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1a/78/5abe58d1698dfacc0e5ab719aa2cd93879230e45b9387bcc3b0bb91040d3/pyobjc_framework_applescriptkit-10.3.2.tar.gz", hash = "sha256:a4d74fc6b28d1ff7d39b60c9e0c2d5d1baf575ade6e6d1ea06ed077facec47db", size = 12102, upload-time = "2024-11-30T15:26:39.268Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7b/7b/2abb01be55d4633ecae77af4d85077e7825452ece51daf4cd0cde0d8ae49/pyobjc_framework_AppleScriptKit-10.3.2-py2.py3-none-any.whl", hash = "sha256:a970410ece8004a912918eed3173b2771c857fb8eb3b61f8d796d3e0e0b759d6", size = 3931, upload-time = "2024-11-30T13:00:52.866Z" },
+    { url = "https://files.pythonhosted.org/packages/50/bb/2e8ff9f8d4b72ba43e3e0e45f9aa4ce8d02352e8dd4a6321bfc61371ec21/pyobjc_framework_AppleScriptKit-10.3.2-py3-none-any.whl", hash = "sha256:38e7b573d3d5b3773d8a7f2189cad2378d32353d597dcd6342e2419dd6310c0e", size = 3926, upload-time = "2024-11-30T13:01:32.795Z" },
+]
+
+[[package]]
+name = "pyobjc-framework-applescriptkit"
+version = "11.1"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.13' and sys_platform == 'darwin'",
+    "python_full_version == '3.12.*' and sys_platform == 'darwin'",
+    "python_full_version == '3.11.*' and sys_platform == 'darwin'",
+    "python_full_version == '3.10.*' and sys_platform == 'darwin'",
+    "python_full_version == '3.9.*' and platform_machine == 'arm64' and sys_platform == 'darwin'",
+    "(python_full_version == '3.9.*' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.9.*' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version == '3.9.*' and sys_platform != 'darwin' and sys_platform != 'linux')",
+]
+dependencies = [
+    { name = "pyobjc-core", marker = "(python_full_version == '3.9.*' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.9' and sys_platform == 'darwin') or (python_full_version == '3.9.*' and sys_platform != 'darwin' and sys_platform != 'linux')" },
+    { name = "pyobjc-framework-cocoa", version = "11.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version == '3.9.*' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.9' and sys_platform == 'darwin') or (python_full_version == '3.9.*' and sys_platform != 'darwin' and sys_platform != 'linux')" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/bc/63/1bcfcdca53bf5bba3a7b4d73d24232ae1721a378a32fd4ebc34a35549df2/pyobjc_framework_applescriptkit-11.1.tar.gz", hash = "sha256:477707352eaa6cc4a5f8c593759dc3227a19d5958481b1482f0d59394a4601c3", size = 12392, upload-time = "2025-06-14T20:56:39.331Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c6/0e/68ac4ce71e613697a087c262aefacc9ed54eaf0cf1d9ffcd89134bfdab9b/pyobjc_framework_applescriptkit-11.1-py2.py3-none-any.whl", hash = "sha256:e22cbc9d1a25a4a713f21aa94dd017c311186b02062fc7ffbde3009495fb0067", size = 4334, upload-time = "2025-06-14T20:45:15.205Z" },
+]
+
+[[package]]
+name = "pyobjc-framework-applescriptobjc"
+version = "10.3.2"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.8.1' and python_full_version < '3.9' and platform_machine == 'arm64' and sys_platform == 'darwin'",
+    "python_full_version < '3.8.1' and platform_machine == 'arm64' and sys_platform == 'darwin'",
+    "(python_full_version >= '3.8.1' and python_full_version < '3.9' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.8.1' and python_full_version < '3.9' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.8.1' and python_full_version < '3.9' and sys_platform != 'darwin' and sys_platform != 'linux')",
+    "(python_full_version < '3.8.1' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.8.1' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.8.1' and sys_platform != 'darwin' and sys_platform != 'linux')",
+]
+dependencies = [
+    { name = "pyobjc-core", marker = "(python_full_version < '3.9' and platform_machine != 'aarch64') or (python_full_version < '3.9' and sys_platform != 'linux')" },
+    { name = "pyobjc-framework-cocoa", version = "10.3.2", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.9' and platform_machine != 'aarch64') or (python_full_version < '3.9' and sys_platform != 'linux')" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f0/8b/d720f671b21a07a8d1815c54ce4e8f313f73ea645a82faa8331a2a05d9c2/pyobjc_framework_applescriptobjc-10.3.2.tar.gz", hash = "sha256:6af16cab0fe4e2d50775e67501bcecae1c5acdba7ed560eba38e5f8e3c8ac38c", size = 12166, upload-time = "2024-11-30T15:26:41.128Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fb/46/eff05f226e5834c9f24cc96b12e09d0da08165264f1fde813ba715ca2f6e/pyobjc_framework_AppleScriptObjC-10.3.2-py2.py3-none-any.whl", hash = "sha256:a932ffdcf6a5b5ac884666bb0ae2a8075528f489b0b5aa4336fc22e6f011664e", size = 4030, upload-time = "2024-11-30T13:01:50.824Z" },
+    { url = "https://files.pythonhosted.org/packages/81/6b/b00195e4431651ffdb313d35da3c3f27a8b2558a3219bb00221500b75b59/pyobjc_framework_AppleScriptObjC-10.3.2-py3-none-any.whl", hash = "sha256:e0a0496fc05e7b23d6030d9dfcd706167ad05e7032f69117bc0136234eebc12e", size = 4026, upload-time = "2024-11-30T13:01:53.444Z" },
+]
+
+[[package]]
+name = "pyobjc-framework-applescriptobjc"
+version = "11.1"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.13' and sys_platform == 'darwin'",
+    "python_full_version == '3.12.*' and sys_platform == 'darwin'",
+    "python_full_version == '3.11.*' and sys_platform == 'darwin'",
+    "python_full_version == '3.10.*' and sys_platform == 'darwin'",
+    "python_full_version == '3.9.*' and platform_machine == 'arm64' and sys_platform == 'darwin'",
+    "(python_full_version == '3.9.*' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.9.*' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version == '3.9.*' and sys_platform != 'darwin' and sys_platform != 'linux')",
+]
+dependencies = [
+    { name = "pyobjc-core", marker = "(python_full_version == '3.9.*' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.9' and sys_platform == 'darwin') or (python_full_version == '3.9.*' and sys_platform != 'darwin' and sys_platform != 'linux')" },
+    { name = "pyobjc-framework-cocoa", version = "11.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version == '3.9.*' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.9' and sys_platform == 'darwin') or (python_full_version == '3.9.*' and sys_platform != 'darwin' and sys_platform != 'linux')" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a3/27/687b55b575367df045879b786f358355e40e41f847968e557d0718a6c4a4/pyobjc_framework_applescriptobjc-11.1.tar.gz", hash = "sha256:c8a0ec975b64411a4f16a1280c5ea8dbe949fd361e723edd343102f0f95aba6e", size = 12445, upload-time = "2025-06-14T20:56:39.976Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2d/33/ceb6a512b41fbf3458b9a281997ebb3056cc354981215261f0a2bf7d15d6/pyobjc_framework_applescriptobjc-11.1-py2.py3-none-any.whl", hash = "sha256:ac22526fd1f0a3b07ac1d77f90046b77f10ec9549182114f2428ee1e96d3de2b", size = 4433, upload-time = "2025-06-14T20:45:16.061Z" },
 ]
 
 [[package]]

@@ -13,4 +13,5 @@ dependencies = [
     "pynput>=1.7.0",
     # Windows 平台特定依赖
     "pywin32; sys_platform == 'win32'",
+    "py-applescript; sys_platform == 'darwin'",
 ]

@@ -144,7 +144,7 @@ class WaylandExecutor(PlatformExecutor):
     def scroll_up(self) -> bool:
         """向上滚动"""
         try:
-            pyautogui.scroll(3)
+            pyautogui.scroll(20)
             return True
         except Exception as e:
             print(f"向上滚动失败: {e}")
@@ -153,7 +153,7 @@ class WaylandExecutor(PlatformExecutor):
     def scroll_down(self) -> bool:
         """向下滚动"""
         try:
-            pyautogui.scroll(-3)
+            pyautogui.scroll(-20)
             return True
         except Exception as e:
             print(f"向下滚动失败: {e}")
