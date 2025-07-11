@@ -650,12 +650,8 @@ class MainWindow(QMainWindow):
     def read_connection_type(self) -> str:
         """读取当前通信配置类型"""
         try:
-            # 读取dyn_gestures/config.py文件
-            config_path = os.path.join("..", "dyn_gestures", "config.py")
-            if not os.path.exists(config_path):
-                # 如果相对路径不存在，尝试绝对路径
-                current_dir = os.path.dirname(os.path.abspath(__file__))
-                config_path = os.path.join(current_dir, "..", "..", "dyn_gestures", "config.py")
+            # 读取project/config.py文件
+            config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config.py")
             
             with open(config_path, 'r', encoding='utf-8') as f:
                 content = f.read()
@@ -676,12 +672,8 @@ class MainWindow(QMainWindow):
     def write_connection_type(self, connection_type: str) -> bool:
         """写入通信配置类型"""
         try:
-            # 读取dyn_gestures/config.py文件
-            config_path = os.path.join("..", "dyn_gestures", "config.py")
-            if not os.path.exists(config_path):
-                # 如果相对路径不存在，尝试绝对路径
-                current_dir = os.path.dirname(os.path.abspath(__file__))
-                config_path = os.path.join(current_dir, "..", "..", "dyn_gestures", "config.py")
+            # 读取project/config.py文件
+            config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config.py")
             
             with open(config_path, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
@@ -692,9 +684,9 @@ class MainWindow(QMainWindow):
                     # 保持原有的注释
                     if '#' in line:
                         comment = line.split('#', 1)[1]
-                        lines[i] = f"CONNECTION_TYPE = '{connection_type}'      #{comment}"
+                        lines[i] = f"CONNECTION_TYPE = '{connection_type}'  #{comment}"
                     else:
-                        lines[i] = f"CONNECTION_TYPE = '{connection_type}'\n"
+                        lines[i] = f"CONNECTION_TYPE = '{connection_type}'  # 通信模式：'socket' 或 'serial' (蓝牙)\n"
                     break
             
             # 写入文件
@@ -718,7 +710,7 @@ class MainWindow(QMainWindow):
                 self, 
                 '切换通信方式', 
                 f'确定要将通信方式从 {self.current_connection_type.upper()} 切换到 {new_type.upper()} 吗？\n\n'
-                f'这将修改手势检测模块的配置文件。',
+                f'这将修改当前应用的配置文件。',
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No
             )
@@ -772,7 +764,7 @@ class MainWindow(QMainWindow):
                         self, 
                         '切换成功', 
                         f'通信方式已成功切换到 {new_type.upper()}！\n\n'
-                        f'请重启手势检测模块以应用新配置。'
+                        f'新配置已保存，可以立即使用。'
                     )
                     
                     # 如果之前服务器在运行，询问是否重启

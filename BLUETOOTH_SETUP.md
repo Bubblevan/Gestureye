@@ -1,54 +1,47 @@
-# 蓝牙RFCOMM通信功能设置指南
-
-## 概述
+# 蓝牙通信设置指南
 
 `project`现在支持通过蓝牙RFCOMM协议接收来自`dyn_gestures`的手势数据。这个功能允许您在Socket和Bluetooth通信方式之间无缝切换。
 
-## 功能特性
-
-? **完整的蓝牙RFCOMM服务器实现**
-? **与dyn_gestures完全兼容**  
-? **UI中动态切换通信方式**
-? **详细的状态显示和错误处理**
-? **跨平台支持**
-
 ## 系统要求
 
-### Linux系统
+### 依赖库
 ```bash
-# 安装蓝牙开发库
+# 安装蓝牙支持库
+pip install pybluez
+
+# 可选：用于自动获取MAC地址
+pip install psutil wmi
+```
+
+### 系统支持
+- **Windows**: 需要蓝牙硬件和驱动程序
+- **Linux**: 需要安装蓝牙工具包
+```bash
 sudo apt-get install bluetooth libbluetooth-dev
-
-# 安装Python蓝牙库
-pip install pybluez
 ```
-
-### Windows系统
-```bash
-# Windows通常内置蓝牙支持，但可能需要额外的库
-pip install pybluez
-# 或者使用Windows特定的蓝牙库
-```
-
-### macOS系统
-```bash
-# macOS可能需要特定的蓝牙库
-pip install pybluez
-# 或者使用macOS特定的蓝牙库
-```
+- **macOS**: 需要蓝牙硬件支持
 
 ## 配置步骤
 
-### 1. 配置dyn_gestures
+### 1. 配置project应用
 
-在`dyn_gestures/config.py`中设置：
+在`project/config.py`中设置：
 ```python
 CONNECTION_TYPE = 'serial'  # 启用蓝牙模式
 BLUETOOTH_MAC = 'XX:XX:XX:XX:XX:XX'  # 可选：指定MAC地址
 BLUETOOTH_PORT = 4  # RFCOMM端口号
 ```
 
-### 2. 配置project UI
+### 2. 配置dyn_gestures客户端
+
+在`dyn_gestures/config.py`中设置：
+```python
+CONNECTION_TYPE = 'serial'  # 启用蓝牙模式
+BLUETOOTH_MAC = 'XX:XX:XX:XX:XX:XX'  # project应用的蓝牙MAC地址
+BLUETOOTH_PORT = 4  # RFCOMM端口号
+```
+
+### 3. 通过UI切换通信方式
 
 1. 启动project应用：`python app.py`
 2. 点击菜单栏的"通信"
@@ -56,7 +49,7 @@ BLUETOOTH_PORT = 4  # RFCOMM端口号
 4. 确认切换到Bluetooth模式
 5. 重启手势检测
 
-### 3. 验证配置
+### 4. 验证配置
 
 使用提供的测试脚本验证蓝牙功能：
 ```bash

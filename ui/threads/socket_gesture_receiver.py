@@ -42,14 +42,10 @@ class SocketGestureReceiverThread(QThread):
         self.gesture_handler.gesture_processed.connect(self.on_gesture_processed)
     
     def _read_connection_type(self) -> str:
-        """读取dyn_gestures配置文件中的通信方式"""
+        """读取project配置文件中的通信方式"""
         try:
-            # 读取dyn_gestures/config.py文件
-            config_path = os.path.join("..", "dyn_gestures", "config.py")
-            if not os.path.exists(config_path):
-                # 如果相对路径不存在，尝试绝对路径
-                current_dir = os.path.dirname(os.path.abspath(__file__))
-                config_path = os.path.join(current_dir, "..", "..", "..", "dyn_gestures", "config.py")
+            # 读取project/config.py文件
+            config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "config.py")
             
             with open(config_path, 'r', encoding='utf-8') as f:
                 content = f.read()

@@ -838,12 +838,8 @@ class MainWindowUI(QMainWindow):
     def read_connection_type(self) -> str:
         """读取当前通信配置类型"""
         try:
-            # 读取dyn_gestures/config.py文件
-            config_path = os.path.join("..", "dyn_gestures", "config.py")
-            if not os.path.exists(config_path):
-                # 如果相对路径不存在，尝试绝对路径
-                current_dir = os.path.dirname(os.path.abspath(__file__))
-                config_path = os.path.join(current_dir, "..", "..", "dyn_gestures", "config.py")
+            # 读取project/config.py文件
+            config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config.py")
             
             with open(config_path, 'r', encoding='utf-8') as f:
                 content = f.read()
@@ -864,12 +860,8 @@ class MainWindowUI(QMainWindow):
     def write_connection_type(self, connection_type: str) -> bool:
         """写入通信配置类型"""
         try:
-            # 读取dyn_gestures/config.py文件
-            config_path = os.path.join("..", "dyn_gestures", "config.py")
-            if not os.path.exists(config_path):
-                # 如果相对路径不存在，尝试绝对路径
-                current_dir = os.path.dirname(os.path.abspath(__file__))
-                config_path = os.path.join(current_dir, "..", "..", "dyn_gestures", "config.py")
+            # 读取project/config.py文件
+            config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config.py")
             
             with open(config_path, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
@@ -880,9 +872,9 @@ class MainWindowUI(QMainWindow):
                     # 保持原有的注释
                     if '#' in line:
                         comment = line.split('#', 1)[1]
-                        lines[i] = f"CONNECTION_TYPE = '{connection_type}'      #{comment}"
+                        lines[i] = f"CONNECTION_TYPE = '{connection_type}'  #{comment}"
                     else:
-                        lines[i] = f"CONNECTION_TYPE = '{connection_type}'\n"
+                        lines[i] = f"CONNECTION_TYPE = '{connection_type}'  # 通信模式：'socket' 或 'serial' (蓝牙)\n"
                     break
             
             # 写入文件
@@ -915,7 +907,7 @@ class MainWindowUI(QMainWindow):
                 f'说明：\n'
                 f'• Socket: 使用TCP/IP网络通信\n'
                 f'• Bluetooth: 使用蓝牙RFCOMM协议通信\n\n'
-                f'这将修改手势检测模块的配置文件。',
+                f'这将修改当前应用的配置文件。',
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No
             )
@@ -942,7 +934,7 @@ class MainWindowUI(QMainWindow):
                         self, 
                         '切换成功', 
                         f'通信方式已成功切换到 {new_display}！\n\n'
-                        f'请重启手势检测模块以应用新配置。'
+                        f'新配置已保存，可以立即使用。'
                     )
                     
                     # 如果之前在运行，询问是否重启
@@ -1014,7 +1006,7 @@ class MainWindowUI(QMainWindow):
                     local_mac = server_info.get('local_mac_address')
                     if local_mac:
                         status_text += f"本机MAC地址: {local_mac}\n"
-                        status_text += f"dyn_gestures配置:\n"
+                        status_text += f"当前配置:\n"
                         status_text += f"  BLUETOOTH_MAC = '{local_mac}'\n"
                         status_text += f"  CONNECTION_TYPE = 'serial'\n"
                     else:
@@ -1064,7 +1056,7 @@ class MainWindowUI(QMainWindow):
                 print(f"\n🔵 蓝牙通信模式已启用")
                 print(f"   📍 本机蓝牙MAC地址: {mac_address}")
                 print(f"   🔌 RFCOMM端口: 4")
-                print(f"   📱 dyn_gestures配置提示:")
+                print(f"   📱 蓝牙配置已自动更新:")
                 print(f"      BLUETOOTH_MAC = '{mac_address}'")
                 print(f"      BLUETOOTH_PORT = 4")
                 print(f"      CONNECTION_TYPE = 'serial'\n")
@@ -1072,7 +1064,7 @@ class MainWindowUI(QMainWindow):
                 # 同时记录到UI日志
                 self.log_message(f"📍 本机蓝牙MAC地址: {mac_address}")
                 self.log_message(f"🔌 RFCOMM端口: 4")
-                self.log_message(f"📱 请在dyn_gestures中配置: BLUETOOTH_MAC = '{mac_address}'")
+                self.log_message(f"📱 蓝牙配置已自动更新")
                 
             else:
                 print(f"\n🔵 蓝牙通信模式已启用")
@@ -1084,7 +1076,7 @@ class MainWindowUI(QMainWindow):
                 print(f"      3. 在硬件选项卡中查看蓝牙适配器属性")
                 print(f"      4. 或者在设备管理器中查看蓝牙适配器详情")
                 print(f"   💡 或者尝试安装依赖: pip install psutil wmi")
-                print(f"   📱 然后在dyn_gestures中配置: BLUETOOTH_MAC = 'XX:XX:XX:XX:XX:XX'\n")
+                print(f"   📱 请手动配置蓝牙MAC地址\n")
                 
                 # 记录到UI日志  
                 self.log_message("⚠️ 无法自动获取蓝牙MAC地址")
@@ -1094,7 +1086,7 @@ class MainWindowUI(QMainWindow):
         except Exception as e:
             print(f"\n🔵 蓝牙通信模式已启用")
             print(f"   ❌ 获取蓝牙MAC地址时出错: {e}")
-            print(f"   💡 请手动配置dyn_gestures中的BLUETOOTH_MAC")
+            print(f"   💡 请手动配置蓝牙MAC地址")
             print(f"   或安装所需依赖: pip install pybluez psutil\n")
             
             # 记录到UI日志
