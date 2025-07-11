@@ -183,7 +183,7 @@ class SocketServer(QObject):
 
 
 class BluetoothServer(QObject):
-    """蓝牙RFCOMM服务器类 - 接收手势识别数据并发送信号"""
+    """蓝牙RFCOMM服务器类 - 使用普通socket接收手势识别数据并发送信号"""
     
     # PyQt6信号，用于将数据传递给主线程
     gesture_received = pyqtSignal(dict)  # 接收到手势数据
@@ -204,7 +204,7 @@ class BluetoothServer(QObject):
         self.local_mac_address = None  # 存储本机MAC地址
         
     def _check_bluetooth_support(self) -> bool:
-        """检查系统是否支持蓝牙"""
+        """检查系统是否支持蓝牙socket"""
         try:
             # 尝试访问蓝牙相关的socket常量
             socket.AF_BLUETOOTH
@@ -214,7 +214,7 @@ class BluetoothServer(QObject):
             return False
     
     def _get_local_bluetooth_mac(self) -> Optional[str]:
-        """获取本机蓝牙MAC地址 (使用Python库)"""
+        """获取本机蓝牙MAC地址"""
         try:
             import platform
             import re
@@ -226,9 +226,9 @@ class BluetoothServer(QObject):
                 import config
                 if hasattr(config, 'BLUETOOTH_MAC') and config.BLUETOOTH_MAC != "XX:XX:XX:XX:XX:XX":
                     manual_mac = config.BLUETOOTH_MAC.strip()
-                    if re.match(r'^[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}$', manual_mac):
+                    if re.match(r'^[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}$', manual_mac):
                         print(f"[BLUETOOTH] 使用手动配置的MAC地址: {manual_mac}")
-                        return manual_mac.upper()
+                        return manual_mac.lower()  # 确保小写格式
             except Exception as e:
                 print(f"[BLUETOOTH] 读取手动配置失败: {e}")
             
@@ -277,9 +277,9 @@ class BluetoothServer(QObject):
                             if ('蓝牙' in adapter.NetConnectionID or 
                                 'bluetooth' in adapter.NetConnectionID.lower() or
                                 'Bluetooth' in adapter.NetConnectionID):
-                                mac = adapter.MACAddress.replace('-', ':').upper()
+                                mac = adapter.MACAddress.replace('-', ':').lower()  # 转换为小写
                                 print(f"[BLUETOOTH] 找到蓝牙网络适配器: {adapter.NetConnectionID} -> {mac}")
-                                if re.match(r'^[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}$', mac):
+                                if re.match(r'^[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}$', mac):
                                     return mac
                     
                     # 如果没找到中文"蓝牙"，尝试查找描述中包含蓝牙的适配器
@@ -287,9 +287,9 @@ class BluetoothServer(QObject):
                         if adapter.MACAddress and adapter.Description:
                             if ('bluetooth' in adapter.Description.lower() and 
                                 'network' in adapter.Description.lower()):
-                                mac = adapter.MACAddress.replace('-', ':').upper()
+                                mac = adapter.MACAddress.replace('-', ':').lower()  # 转换为小写
                                 print(f"[BLUETOOTH] 找到蓝牙适配器: {adapter.Description} -> {mac}")
-                                if re.match(r'^[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}$', mac):
+                                if re.match(r'^[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}$', mac):
                                     return mac
                                     
                 except ImportError:
@@ -311,9 +311,9 @@ class BluetoothServer(QObject):
                             
                             for address in interface_addresses:
                                 if hasattr(psutil, 'AF_LINK') and address.family == psutil.AF_LINK:
-                                    mac = address.address.replace('-', ':').upper()
+                                    mac = address.address.replace('-', ':').lower()  # 转换为小写
                                     print(f"[BLUETOOTH] psutil找到蓝牙接口: {interface_name} -> {mac}")
-                                    if re.match(r'^[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}$', mac):
+                                    if re.match(r'^[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}$', mac):
                                         return mac
                                         
                 except ImportError:
@@ -338,7 +338,7 @@ class BluetoothServer(QObject):
                                     # 尝试读取LocalRadioAddress
                                     local_mac, _ = winreg.QueryValueEx(key, "LocalRadioAddress")
                                     if local_mac and isinstance(local_mac, bytes) and len(local_mac) >= 6:
-                                        mac = ':'.join(f'{b:02X}' for b in local_mac[:6])
+                                        mac = ':'.join(f'{b:02x}' for b in local_mac[:6])  # 转换为小写
                                         print(f"[BLUETOOTH] 注册表找到本机适配器: {mac}")
                                         return mac
                                 except FileNotFoundError:
@@ -380,7 +380,7 @@ class BluetoothServer(QObject):
         return None
         
     def start_server(self) -> bool:
-        """启动蓝牙RFCOMM服务器"""
+        """启动蓝牙RFCOMM服务器 - 使用普通socket"""
         if not self.bluetooth_available:
             self._emit_status("系统不支持蓝牙RFCOMM协议，请安装 pybluez: pip install pybluez")
             return False
@@ -393,44 +393,36 @@ class BluetoothServer(QObject):
             # 获取本机蓝牙MAC地址
             self.local_mac_address = self._get_local_bluetooth_mac()
             
-            # 创建蓝牙RFCOMM socket
+            # 创建蓝牙RFCOMM socket - 使用普通socket而不是pybluez
             self.server_socket = socket.socket(
                 socket.AF_BLUETOOTH, 
                 socket.SOCK_STREAM, 
                 socket.BTPROTO_RFCOMM
             )
             
-            # 绑定到指定地址和端口
-            self.server_socket.bind((self.host, self.port))
-            self.server_socket.listen(5)
+            # 绑定到本地蓝牙适配器和RFCOMM端口
+            # 对于蓝牙服务器，通常使用空字符串让系统自动选择适配器
+            # 或者使用获取到的MAC地址
+            if self.local_mac_address:
+                bind_host = self.local_mac_address
+            else:
+                bind_host = ""  # 空字符串让系统自动选择
+                
+            print(f"[BLUETOOTH] 尝试绑定到: {bind_host}:{self.port}")
+            self.server_socket.bind((bind_host, self.port))
+            
+            # 开始监听，1表示允许的最大挂起连接数为1
+            self.server_socket.listen(1)
             
             self.is_running = True
             self.server_thread = threading.Thread(target=self._server_loop, daemon=True)
             self.server_thread.start()
             
-            # 获取实际绑定的地址
-            actual_address = self.server_socket.getsockname()
-            self._emit_status(f"蓝牙RFCOMM服务器已启动，监听 {actual_address[0]}:{actual_address[1]}")
-            
-            # 打印本机蓝牙MAC地址信息
+            # 显示启动信息
             if self.local_mac_address:
-                print(f"\n🔵 蓝牙服务器信息:")
-                print(f"   📍 本机蓝牙MAC地址: {self.local_mac_address}")
-                print(f"   🔌 监听端口: RFCOMM端口{actual_address[1]}")
-                print(f"   📱 dyn_gestures配置提示:")
-                print(f"      BLUETOOTH_MAC = '{self.local_mac_address}'")
-                print(f"      BLUETOOTH_PORT = {actual_address[1]}")
-                print(f"      CONNECTION_TYPE = 'serial'\n")
-                
-                # 同时通过信号发送给UI
-                self._emit_status(f"本机蓝牙MAC地址: {self.local_mac_address}")
+                self._emit_status(f"蓝牙RFCOMM服务器已启动，监听 {self.local_mac_address}:{self.port}")
             else:
-                print(f"\n🔵 蓝牙服务器已启动")
-                print(f"   🔌 监听端口: RFCOMM端口{actual_address[1]}")
-                print(f"   ⚠️  无法获取本机蓝牙MAC地址")
-                print(f"   💡 请手动配置dyn_gestures中的BLUETOOTH_MAC\n")
-                
-                self._emit_status("无法获取本机蓝牙MAC地址，请手动配置")
+                self._emit_status(f"蓝牙RFCOMM服务器已启动，监听端口 {self.port}")
             
             return True
             
@@ -457,7 +449,7 @@ class BluetoothServer(QObject):
         if self.server_thread and self.server_thread.is_alive():
             self.server_thread.join(timeout=2)
             
-        self._emit_status("蓝牙服务器已停止")
+        self._emit_status("蓝牙RFCOMM服务器已停止")
     
     def _server_loop(self):
         """蓝牙服务器主循环"""
@@ -465,19 +457,19 @@ class BluetoothServer(QObject):
             try:
                 # 设置短超时，以便能够响应停止信号
                 self.server_socket.settimeout(1.0)
-                client_socket, client_address = self.server_socket.accept()
+                client_socket, client_info = self.server_socket.accept()
                 
                 if self.is_running:
                     # 为每个客户端创建处理线程
                     client_thread = threading.Thread(
                         target=self._handle_client,
-                        args=(client_socket, client_address),
+                        args=(client_socket, client_info),
                         daemon=True
                     )
                     client_thread.start()
                     self.client_threads.append(client_thread)
                     
-                    self._emit_client_connected(f"{client_address[0]}:{client_address[1]}")
+                    self._emit_client_connected(f"{client_info[0]}")
                     
             except socket.timeout:
                 # 超时是正常的，继续循环
@@ -490,7 +482,7 @@ class BluetoothServer(QObject):
                     self._emit_status(f"蓝牙服务器错误: {e}")
                 break
     
-    def _handle_client(self, client_socket: socket.socket, client_address):
+    def _handle_client(self, client_socket: socket.socket, client_info):
         """处理蓝牙客户端连接"""
         try:
             with client_socket:
@@ -499,14 +491,15 @@ class BluetoothServer(QObject):
                     client_socket.settimeout(1.0)
                     
                     try:
+                        # 从客户端接收数据，缓冲区大小为1024字节
                         data = client_socket.recv(1024)
                         if not data:
                             break
                             
-                        # 解码消息
+                        # 将收到的字节解码为字符串
                         message = data.decode('utf-8')
                         if self.debug_mode:
-                            print(f"[BLUETOOTH] 收到来自 {client_address} 的消息: {message}")
+                            print(f"[BLUETOOTH] 收到来自 {client_info[0]} 的消息: {message}")
                         
                         # 尝试解析JSON数据
                         try:
@@ -519,12 +512,12 @@ class BluetoothServer(QObject):
                                 'type': 'text',
                                 'message': message,
                                 'timestamp': time.time(),
-                                'client': f"{client_address[0]}:{client_address[1]}"
+                                'client': client_info[0]
                             }
                             self.gesture_received.emit(gesture_data)
                         
-                        # 发送确认响应（与dyn_gestures的客户端期望的格式一致）
-                        response = "数据已接收"
+                        # 构造回复消息并发送给客户端
+                        response = "服务器已收到你的消息"
                         client_socket.sendall(response.encode('utf-8'))
                         
                     except socket.timeout:
@@ -536,9 +529,9 @@ class BluetoothServer(QObject):
                         
         except Exception as e:
             if self.debug_mode:
-                print(f"[BLUETOOTH] 处理客户端 {client_address} 时出错: {e}")
+                print(f"[BLUETOOTH] 处理客户端 {client_info[0]} 时出错: {e}")
         finally:
-            self._emit_client_disconnected(f"{client_address[0]}:{client_address[1]}")
+            self._emit_client_disconnected(f"{client_info[0]}")
     
     def _emit_status(self, message: str):
         """发送状态消息信号"""
@@ -562,11 +555,11 @@ class BluetoothServer(QObject):
         """获取蓝牙服务器状态"""
         return {
             'running': self.is_running,
-            'host': self.host,
+            'host': self.local_mac_address or self.host,
             'port': self.port,
+            'active_threads': len([t for t in self.client_threads if t.is_alive()]),
             'bluetooth_available': self.bluetooth_available,
-            'local_mac_address': self.local_mac_address,
-            'active_threads': len([t for t in self.client_threads if t.is_alive()])
+            'local_mac_address': self.local_mac_address
         }
 
 
