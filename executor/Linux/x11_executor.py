@@ -5,7 +5,7 @@ Linux X11平台执行器
 
 import time
 import subprocess
-from typing import Optional
+from typing import Optional, Tuple
 import pyautogui
 
 from ..os_manager import PlatformExecutor
@@ -51,16 +51,17 @@ class X11Executor(PlatformExecutor):
         self.last_execution_time[operation] = current_time
         return True
     
-    def _execute_kdotool_command(self, command: str, *args) -> bool:
+    def _execute_kdotool_command(self, command: str, *args) -> Tuple[bool, str]:
         """执行kdotool命令"""
         if not self.has_kdotool:
-            return False
+            print("Failed: kdotool not found")
+            return False, "Failed: kdotool not found"
         try:
-            window_id = subprocess.check_output(['kdotool', 'getactivewindow']).strip()
-            subprocess.call(['kdotool', command, window_id] + list(args))
-            return True
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            return False
+            result = subprocess.run(['kdotool', 'getactivewindow', command] + list(args), capture_output=True, text=True)
+            return True, result.stdout.strip()
+
+        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+            return False, f"Failed: {e}"
     
     def _execute_xdotool_command(self, command: str, *args) -> bool:
         """执行xdotool命令"""
@@ -103,7 +104,7 @@ class X11Executor(PlatformExecutor):
         """最小化当前活动窗口"""
         if not self._check_cooldown("minimize"):
             return False
-        return self._execute_kdotool_command('windowminimize')
+        return self._execute_kdotool_command('windowminimize')[0]
     
     def restore_window(self) -> bool:
         """恢复当前活动窗口"""
@@ -116,29 +117,14 @@ class X11Executor(PlatformExecutor):
         """关闭当前活动窗口"""
         if not self._check_cooldown("close"):
             return False
-        return self._execute_kdotool_command('windowclose')
+        return self._execute_kdotool_command('windowclose')[0]
     
     def drag_window(self, dx: int, dy: int) -> bool:
         """拖拽当前活动窗口"""
         if self.has_kdotool:
-            return self._execute_kdotool_command('windowmove', str(dx), str(dy))
-        elif self.has_xdotool:
-            # 获取当前窗口位置并移动
-            try:
-                # 获取活动窗口ID
-                window_id = subprocess.check_output(['xdotool', 'getactivewindow']).strip().decode()
-                # 获取当前位置
-                pos_output = subprocess.check_output(['xdotool', 'getwindowgeometry', window_id]).decode()
-                # 解析位置信息并移动窗口
-                for line in pos_output.split('\n'):
-                    if 'Position:' in line:
-                        pos_str = line.split('Position:')[1].strip()
-                        x, y = map(int, pos_str.split(','))
-                        new_x, new_y = x + dx, y + dy
-                        subprocess.call(['xdotool', 'windowmove', window_id, str(new_x), str(new_y)])
-                        return True
-            except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
-                pass
+            result = self._execute_kdotool_command('getwindowgeometry')
+            cur_x, cur_y = map(float, result[1].splitlines()[1].strip().split()[1].split(','))
+            return self._execute_kdotool_command('windowmove', str(int(round(cur_x) + dx)), str(int(round(cur_y) + dy)))[0]
         return False
     
     def scroll_up(self) -> bool:
