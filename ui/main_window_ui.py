@@ -237,30 +237,28 @@ class MainWindowUI(QMainWindow):
 
     
     def setup_connections(self):
-        """设置信号和槽连接"""
-        # 连接按钮点击事件
-        self.startBtn.clicked.connect(self.start_detection)
-        self.stopBtn.clicked.connect(self.stop_detection)
+        """设置信号连接"""
+        # 主要控制按钮
+        self.startBtn.clicked.connect(self.toggle_detection)  # 改为切换功能
+        # self.stopBtn.clicked.connect(self.stop_detection)  # 移除停止按钮连接
         
-        # 连接通信相关的菜单动作
-        self.actionToggleConnectionType.triggered.connect(self.toggle_connection_type)
-        self.actionShowConnectionStatus.triggered.connect(self.show_connection_status)
+        # 调试和视图控制
+        self.debugModeBtn.clicked.connect(self.toggle_debug_mode)
+        self.actionToggleDebugMode.triggered.connect(self.toggle_debug_mode)
+        self.actionToggleExpandedView.triggered.connect(self.toggle_expanded_view)
         
-        # 连接调试模式切换
-        self.debugModeBtn.toggled.connect(self.toggle_debug_mode)
-        self.actionToggleDebugMode.toggled.connect(self.toggle_debug_mode)
-        
-        # 连接展开视图切换
-        self.actionToggleExpandedView.toggled.connect(self.toggle_expanded_view)
-        
-        # 连接配置菜单项
+        # 配置相关
         self.actionCustomGestureBindings.triggered.connect(self.open_gesture_binding_config)
         self.actionResetBindings.triggered.connect(self.reset_gesture_bindings)
         
-        # 同步按钮和菜单项状态
-        self.debugModeBtn.toggled.connect(self.actionToggleDebugMode.setChecked)
-        self.actionToggleDebugMode.toggled.connect(self.debugModeBtn.setChecked)
-          # 设置Socket手势接收线程
+        # 通信相关
+        self.actionToggleConnectionType.triggered.connect(self.toggle_connection_type)
+        self.actionShowConnectionStatus.triggered.connect(self.show_connection_status)
+        
+        # 手势历史清理
+        self.gesture_history_widget.clear_history_requested.connect(self.clear_gesture_history)
+        
+        # 设置Socket手势接收线程
         self.detection_thread = SocketGestureReceiverThread()
         self.detection_thread.gesture_detected.connect(self.on_gesture_detected)
         self.detection_thread.gesture_detail_detected.connect(self.on_gesture_detail_detected)
@@ -270,13 +268,9 @@ class MainWindowUI(QMainWindow):
     
     def setup_shortcuts(self):
         """设置快捷键"""
-        # Ctrl+S 开始检测
-        start_shortcut = QShortcut(QKeySequence("Ctrl+S"), self)
-        start_shortcut.activated.connect(self.start_detection)
-        
-        # Ctrl+T 停止检测
-        stop_shortcut = QShortcut(QKeySequence("Ctrl+T"), self)
-        stop_shortcut.activated.connect(self.stop_detection)
+        # Ctrl+S 切换检测（启动/停止）
+        toggle_shortcut = QShortcut(QKeySequence("Ctrl+S"), self)
+        toggle_shortcut.activated.connect(self.toggle_detection)
         
         # F11 切换展开/紧凑视图
         expand_shortcut = QShortcut(QKeySequence("F11"), self)
@@ -292,19 +286,53 @@ class MainWindowUI(QMainWindow):
     
     def init_ui_state(self):
         """初始化UI状态"""
-        self.stopBtn.setEnabled(False)
-        self.statusLabel.setText("状态: Socket服务器未启动")
-        self.gestureLabel.setText("最近手势: 等待dyn_gestures连接")
+        # 初始状态：停止状态
+        self.is_detecting = False
+        
+        # 合并为单个切换按钮
+        self.startBtn.setText("启动服务器")
+        self.startBtn.setToolTip("启动Socket/Bluetooth服务器，等待手势检测客户端连接")
+        
+        # 设置按钮初始样式 - 启动状态（蓝色）
+        self.startBtn.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #2563eb, stop:1 #1d4ed8);
+                border: none;
+                color: white;
+                font-size: 14px;
+                font-weight: 600;
+                padding: 8px 16px;
+                border-radius: 6px;
+                min-height: 18px;
+                max-height: 35px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #3b82f6, stop:1 #2563eb);
+            }
+            QPushButton:pressed {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #1d4ed8, stop:1 #1e40af);
+            }
+        """)
+        
+        # 设置状态标签
+        self.statusLabel.setText("状态: 未启动")
+        self.gestureLabel.setText("最近手势: 无")
+        
+        # 设置调试模式按钮
+        self.debugModeBtn.setText("开发者模式")
+        
+        # 设置展开视图按钮
+        self.actionToggleExpandedView.setText("展开视图")
+        
+        # 读取当前通信配置
+        self.current_connection_type = self.read_connection_type()
         
         # 设置窗口属性和按钮文本
-        self.setWindowTitle("手势检测控制中心 - Socket服务器")
+        self.setWindowTitle("手势检测控制中心")
         self.setMinimumSize(620, 600)  # 增加最小宽度以确保手势历史组件不会溢出
-        
-        # 更新按钮文本使其更明确
-        self.startBtn.setText("🔌 启动Socket服务器")
-        self.stopBtn.setText("⏹️ 停止Socket服务器")
-        self.startBtn.setToolTip("启动Socket服务器，等待dyn_gestures项目连接并发送手势数据")
-        self.stopBtn.setToolTip("停止Socket服务器，断开与dyn_gestures项目的连接")
         
         # 强制初始状态：紧凑模式，但给予更合理的初始尺寸
         self.expanded_view = False
@@ -320,16 +348,47 @@ class MainWindowUI(QMainWindow):
         # 更新手势帮助显示
         self.update_gesture_help_display()
     
+    def toggle_detection(self):
+        """切换检测状态（启动/停止）"""
+        if self.is_detecting:
+            self.stop_detection()
+        else:
+            self.start_detection()
+    
     def start_detection(self):
         """开始检测"""
         if self.detection_thread and not self.detection_thread.isRunning():
             self.detection_thread.start()
             
             self.is_detecting = True
-            self.startBtn.setEnabled(False)
-            self.stopBtn.setEnabled(True)
-            self.statusLabel.setText("状态: Socket服务器运行中")
-            self.log_message("Socket服务器已启动，等待dyn_gestures连接...")
+            self.startBtn.setText("停止服务器")
+            self.startBtn.setToolTip("停止Socket/Bluetooth服务器，断开客户端连接")
+            self.statusLabel.setText("状态: 服务器运行中")
+            self.log_message("服务器已启动，等待客户端连接...")
+            
+            # 更新按钮样式 - 停止状态（红色）
+            self.startBtn.setStyleSheet("""
+                QPushButton {
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                        stop:0 #dc2626, stop:1 #b91c1c);
+                    border: none;
+                    color: white;
+                    font-size: 14px;
+                    font-weight: 600;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    min-height: 18px;
+                    max-height: 35px;
+                }
+                QPushButton:hover {
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                        stop:0 #ef4444, stop:1 #dc2626);
+                }
+                QPushButton:pressed {
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                        stop:0 #b91c1c, stop:1 #991b1b);
+                }
+            """)
             
             # 更新状态样式
             self.statusLabel.setStyleSheet(self.statusLabel.styleSheet() + 
@@ -341,14 +400,38 @@ class MainWindowUI(QMainWindow):
             self.detection_thread.stop()
             
             self.is_detecting = False
-            self.startBtn.setEnabled(True)
-            self.stopBtn.setEnabled(False)
+            self.startBtn.setText("启动服务器")
+            self.startBtn.setToolTip("启动Socket/Bluetooth服务器，等待手势检测客户端连接")
+            
+            # 更新按钮样式 - 启动状态（蓝色）
+            self.startBtn.setStyleSheet("""
+                QPushButton {
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                        stop:0 #2563eb, stop:1 #1d4ed8);
+                    border: none;
+                    color: white;
+                    font-size: 14px;
+                    font-weight: 600;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    min-height: 18px;
+                    max-height: 35px;
+                }
+                QPushButton:hover {
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                        stop:0 #3b82f6, stop:1 #2563eb);
+                }
+                QPushButton:pressed {
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                        stop:0 #1d4ed8, stop:1 #1e40af);
+                }
+            """)
             
             # 显示统计信息
             history_count = self.gesture_history_widget.get_history_count()
             self.statusLabel.setText(f"状态: 已停止 (共识别 {history_count} 个手势)")
             self.gestureLabel.setText("最近手势: 无")
-            self.log_message(f"手势检测Socket监听已停止，本次会话共识别 {history_count} 个手势")
+            self.log_message(f"手势检测服务器已停止，本次会话共识别 {history_count} 个手势")
             
             # 恢复状态样式
             self.statusLabel.setStyleSheet(self.statusLabel.styleSheet().replace(
@@ -359,10 +442,10 @@ class MainWindowUI(QMainWindow):
     def on_gesture_detected(self, gesture_name: str, hand_type: str, confidence: float):
         """手势检测回调"""
         # 更新手势显示 - 添加更多信息
-        hand_icon = "🫱" if hand_type.lower() == "right" else "🫲" if hand_type.lower() == "left" else "👋"
-        confidence_icon = "🟢" if confidence >= 80 else "🟡" if confidence >= 60 else "🔴"
+        hand_icon = "右" if hand_type.lower() == "right" else "左" if hand_type.lower() == "left" else "未知"
+        confidence_icon = "高" if confidence >= 80 else "中" if confidence >= 60 else "低"
         
-        gesture_text = f"🤚 {gesture_name} | {hand_icon}{hand_type.title()} | {confidence_icon}{confidence:.0f}%"
+        gesture_text = f"{gesture_name} | {hand_type.title()} | {confidence:.0f}%"
         self.gestureLabel.setText(gesture_text)
         
         # 高亮显示手势标签
@@ -548,8 +631,11 @@ class MainWindowUI(QMainWindow):
     
     def keyPressEvent(self, event):
         """键盘事件处理"""
+        # Ctrl+S 快捷键切换检测状态
+        if event.key() == Qt.Key.Key_S and event.modifiers() == Qt.KeyboardModifier.ControlModifier:
+            self.toggle_detection()
         # F12快捷键切换调试模式
-        if event.key() == Qt.Key.Key_F12:
+        elif event.key() == Qt.Key.Key_F12:
             self.debugModeBtn.toggle()
         # F11快捷键切换展开视图
         elif event.key() == Qt.Key.Key_F11:
@@ -695,7 +781,7 @@ class MainWindowUI(QMainWindow):
     def closeEvent(self, event):
         """关闭事件"""
         if self.detection_thread and self.detection_thread.isRunning():
-            self.log_message("正在停止Socket监听线程...")
+            self.log_message("正在停止服务器线程...")
             self.detection_thread.stop()
             # 等待线程完全停止
             self.detection_thread.wait(3000)  # 等待最多3秒
@@ -814,7 +900,7 @@ class MainWindowUI(QMainWindow):
         if gesture_name == "HandClose":
             if not self.is_dragging:
                 self.is_dragging = True
-                self.log_message(f"🖐️ 激活拖拽模式: {hand_type}手")
+                self.log_message(f"激活拖拽模式: {hand_type}手")
         
         # 如果检测到HandOpen手势，取消拖拽模式
         elif gesture_name == "HandOpen":
@@ -833,7 +919,7 @@ class MainWindowUI(QMainWindow):
         current_time = time.time()
         if self.is_dragging and (current_time - self.last_gesture_time) >= self.drag_gesture_timeout:
             self.is_dragging = False
-            self.log_message("⏰ 拖拽模式超时自动取消")
+            self.log_message("拖拽模式超时自动取消")
 
     def read_connection_type(self) -> str:
         """读取当前通信配置类型"""
@@ -923,7 +1009,7 @@ class MainWindowUI(QMainWindow):
                     # 更新当前状态
                     self.current_connection_type = new_type
                     
-                    self.log_message(f"🔄 通信方式已切换到: {new_display}")
+                    self.log_message(f"通信方式已切换到: {new_display}")
                     
                     # 如果切换到蓝牙模式，立即获取并打印MAC地址
                     if new_type == 'serial':
@@ -1031,7 +1117,7 @@ class MainWindowUI(QMainWindow):
                 status_text
             )
             
-            self.log_message(f"📊 通信状态: {display_name}")
+            self.log_message(f"通信状态: {display_name}")
             
         except Exception as e:
             from PyQt6.QtWidgets import QMessageBox
@@ -1053,42 +1139,42 @@ class MainWindowUI(QMainWindow):
             mac_address = temp_bluetooth._get_local_bluetooth_mac()
             
             if mac_address:
-                print(f"\n🔵 蓝牙通信模式已启用")
-                print(f"   📍 本机蓝牙MAC地址: {mac_address}")
-                print(f"   🔌 RFCOMM端口: 4")
-                print(f"   📱 蓝牙配置已自动更新:")
+                print(f"\n蓝牙通信模式已启用")
+                print(f"   本机蓝牙MAC地址: {mac_address}")
+                print(f"   RFCOMM端口: 4")
+                print(f"   蓝牙配置已自动更新:")
                 print(f"      BLUETOOTH_MAC = '{mac_address}'")
                 print(f"      BLUETOOTH_PORT = 4")
                 print(f"      CONNECTION_TYPE = 'serial'\n")
                 
                 # 同时记录到UI日志
-                self.log_message(f"📍 本机蓝牙MAC地址: {mac_address}")
-                self.log_message(f"🔌 RFCOMM端口: 4")
-                self.log_message(f"📱 蓝牙配置已自动更新")
+                self.log_message(f"本机蓝牙MAC地址: {mac_address}")
+                self.log_message(f"RFCOMM端口: 4")
+                self.log_message(f"蓝牙配置已自动更新")
                 
             else:
-                print(f"\n🔵 蓝牙通信模式已启用")
-                print(f"   ⚠️  无法获取本机蓝牙MAC地址")
-                print(f"   🔌 RFCOMM端口: 4")
-                print(f"   💡 手动获取Windows蓝牙MAC地址:")
+                print(f"\n蓝牙通信模式已启用")
+                print(f"   无法获取本机蓝牙MAC地址")
+                print(f"   RFCOMM端口: 4")
+                print(f"   手动获取Windows蓝牙MAC地址:")
                 print(f"      1. 打开 设置 -> 蓝牙和设备")
                 print(f"      2. 点击 更多蓝牙设置")
                 print(f"      3. 在硬件选项卡中查看蓝牙适配器属性")
                 print(f"      4. 或者在设备管理器中查看蓝牙适配器详情")
-                print(f"   💡 或者尝试安装依赖: pip install psutil wmi")
-                print(f"   📱 请手动配置蓝牙MAC地址\n")
+                print(f"   或者尝试安装依赖: pip install psutil wmi")
+                print(f"   请手动配置蓝牙MAC地址\n")
                 
                 # 记录到UI日志  
-                self.log_message("⚠️ 无法自动获取蓝牙MAC地址")
-                self.log_message("💡 请手动查看Windows蓝牙设置获取MAC地址")
-                self.log_message("📖 参考: 设置->蓝牙和设备->更多蓝牙设置")
+                self.log_message("无法自动获取蓝牙MAC地址")
+                self.log_message("请手动查看Windows蓝牙设置获取MAC地址")
+                self.log_message("参考: 设置->蓝牙和设备->更多蓝牙设置")
                 
         except Exception as e:
-            print(f"\n🔵 蓝牙通信模式已启用")
-            print(f"   ❌ 获取蓝牙MAC地址时出错: {e}")
-            print(f"   💡 请手动配置蓝牙MAC地址")
+            print(f"\n蓝牙通信模式已启用")
+            print(f"   获取蓝牙MAC地址时出错: {e}")
+            print(f"   请手动配置蓝牙MAC地址")
             print(f"   或安装所需依赖: pip install pybluez psutil\n")
             
             # 记录到UI日志
-            self.log_message(f"❌ 获取蓝牙MAC地址失败: {e}")
-            self.log_message("💡 请检查蓝牙依赖库安装情况")
+            self.log_message(f"获取蓝牙MAC地址失败: {e}")
+            self.log_message("请检查蓝牙依赖库安装情况")
