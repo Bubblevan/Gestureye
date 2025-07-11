@@ -933,8 +933,12 @@ class MainWindowUI(QMainWindow):
             # 查找CONNECTION_TYPE配置行
             for line in content.split('\n'):
                 if line.strip().startswith('CONNECTION_TYPE') and '=' in line:
-                    # 提取配置值
-                    value = line.split('=')[1].strip().strip("'\"")
+                    # 提取配置值，去除注释部分
+                    value_part = line.split('=')[1].strip()
+                    # 如果包含注释，只取注释前的部分
+                    if '#' in value_part:
+                        value_part = value_part.split('#')[0].strip()
+                    value = value_part.strip("'\"")
                     return value
                     
             return 'socket'  # 默认值
@@ -1042,6 +1046,10 @@ class MainWindowUI(QMainWindow):
                         # 再次验证
                         final_connection_type = self.detection_thread.connection_type
                         self.log_message(f"重新初始化后配置: {final_connection_type}")
+                        
+                        # 如果仍然不匹配，记录错误但不继续循环
+                        if final_connection_type != new_type:
+                            self.log_message(f"错误：配置仍然不匹配，可能存在配置文件问题")
                     else:
                         self.log_message(f"线程配置验证通过")
                     

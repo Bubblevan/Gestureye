@@ -53,8 +53,12 @@ class SocketGestureReceiverThread(QThread):
             # 查找CONNECTION_TYPE配置行
             for line in content.split('\n'):
                 if line.strip().startswith('CONNECTION_TYPE') and '=' in line:
-                    # 提取配置值
-                    value = line.split('=')[1].strip().strip("'\"")
+                    # 提取配置值，去除注释部分
+                    value_part = line.split('=')[1].strip()
+                    # 如果包含注释，只取注释前的部分
+                    if '#' in value_part:
+                        value_part = value_part.split('#')[0].strip()
+                    value = value_part.strip("'\"")
                     print(f"[通信线程] 读取到配置: CONNECTION_TYPE = '{value}'")
                     return value
                     
@@ -85,13 +89,11 @@ class SocketGestureReceiverThread(QThread):
                 self.server.server_status_changed.connect(self.status_updated.emit)
                 
         except Exception as e:
-            self.error_occurred.emit(f"初始化服务器失败: {e}")
-            # 降级到Socket服务器
-            self.server = SocketServer(self.host, self.port)
-            self.server.gesture_received.connect(self.on_gesture_received)
-            self.server.client_connected.connect(self.client_connected.emit)
-            self.server.client_disconnected.connect(self.client_disconnected.emit)
-            self.server.server_status_changed.connect(self.status_updated.emit)
+            self.error_occurred.emit(f"初始化{self.connection_type}服务器失败: {e}")
+            # 不要自动降级，让用户知道蓝牙初始化失败
+            if self.connection_type == 'serial':
+                self.error_occurred.emit("蓝牙服务器初始化失败，请检查蓝牙支持库安装: pip install pybluez")
+            self.server = None
         
     def run(self):
         """运行通信服务器 (Socket或Bluetooth)"""

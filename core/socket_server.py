@@ -221,6 +221,17 @@ class BluetoothServer(QObject):
             
             system = platform.system()
             
+            # 首先检查配置文件中的手动配置
+            try:
+                import config
+                if hasattr(config, 'BLUETOOTH_MAC') and config.BLUETOOTH_MAC != "XX:XX:XX:XX:XX:XX":
+                    manual_mac = config.BLUETOOTH_MAC.strip()
+                    if re.match(r'^[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}$', manual_mac):
+                        print(f"[BLUETOOTH] 使用手动配置的MAC地址: {manual_mac}")
+                        return manual_mac.upper()
+            except Exception as e:
+                print(f"[BLUETOOTH] 读取手动配置失败: {e}")
+            
             # 方法1: 使用socket直接获取蓝牙地址
             if self.bluetooth_available:
                 try:
